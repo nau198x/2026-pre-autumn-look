@@ -1,0 +1,40 @@
+/* ----------------------------------------------------------------
+ Design tokens
+----------------------------------------------------------------- */
+:root {
+  /* colors */
+  --color-text: #000;
+  --color-bg: #fff;
+  --color-link: #000;
+  --color-primary: #000; /* ブランドアクセント。setup-brand で差し替え */
+  --color-rule: #111; /* 濃罫線（枠・グループ境界） */
+  --color-rule-light: #aaa; /* 薄罫線（区切り） */
+  --color-muted: #999; /* 薄色テキスト（Tag等） */
+
+  /* typography（本文 = --font-primary は固定。ブランド差し替えは --font-display のみ） */
+  --font-primary: "游明朝", "YuMincho", "Hiragino Mincho ProN", serif; /* 本文: 和文明朝スタック */
+  --font-display:
+    "游明朝", "YuMincho", "Hiragino Mincho ProN", serif; /* 見出し・数字・価格: setup-brand で先頭にブランドの欧文ディスプレイを追加 */
+
+  /* spacing */
+  --spacing-xs: 0.5rem;
+  --spacing-sm: 1rem;
+  --spacing-md: 2rem;
+  --spacing-lg: 4rem;
+
+  /* layout */
+  --content-width-mobile: 90%;
+
+  /* motion */
+  --ease-out: cubic-bezier(0.215, 0.61, 0.355, 1);
+}
+
+/* ----------------------------------------------------------------
+ Scroll animation initial state
+ JS有効かつモーション許可時のみ非表示（JS無効・reduced-motionでは隠さない）
+----------------------------------------------------------------- */
+@media (scripting: enabled) and (prefers-reduced-motion: no-preference) {
+  [data-animate] {
+    opacity: 0;
+  }
+}
