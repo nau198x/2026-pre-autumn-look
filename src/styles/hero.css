@@ -1,0 +1,82 @@
+.hero {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+  background-color: var(--color-text);
+
+  .hero__swiper {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+
+    .swiper-slide img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+  }
+
+  .hero__overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing-md);
+    pointer-events: none;
+    background: linear-gradient(180deg, rgb(0 0 0 / 15%), rgb(0 0 0 / 35%));
+  }
+
+  .hero__title {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-sm);
+    margin: 0;
+    text-align: center;
+  }
+
+  .hero__logo {
+    width: min(60vw, 240px);
+    height: auto;
+    filter: drop-shadow(0 2px 12px rgb(0 0 0 / 30%));
+  }
+
+  .hero__catch {
+    font-family: var(--font-display);
+    font-size: 1rem;
+    font-weight: 400;
+    letter-spacing: 0.2em;
+    color: var(--color-inverse);
+    text-shadow: 0 1px 8px rgb(0 0 0 / 40%);
+  }
+
+  @media (width >= 768px) {
+    .hero__logo {
+      width: min(36vw, 380px);
+    }
+
+    .hero__catch {
+      font-size: 1.25rem;
+      letter-spacing: 0.28em;
+    }
+  }
+
+  @media (width >= 1024px) {
+    /* PC: 縦長画像を 1280px 幅（body 上限）いっぱいに表示。黒帯なし・切り抜きなし。
+       Hero 高さは画像比率（look 1–5 の 4:5）に追従するためビューポートより高くなる。
+       画像は base の object-fit: cover のまま（4:5 枠に 4:5 画像＝切れなし）。 */
+    height: auto;
+    aspect-ratio: 1024 / 1280;
+
+    .hero__overlay {
+      /* 縦長 Hero では中央だとロゴがファーストビュー外へ落ちるため上寄せ */
+      align-items: flex-start;
+      padding-top: var(--spacing-lg);
+    }
+  }
+}

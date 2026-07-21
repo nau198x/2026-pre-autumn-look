@@ -36,7 +36,7 @@ AskUserQuestion でブランド名を確認する。下の**ブランド辞書**
 
 ### 3. ブランドフォントの導入（3 パターン）
 
-ブランドフォント（見出し・数字用の欧文ディスプレイ）は **`--font-display` トークン**に入れる。本文用の `--font-primary`（和文明朝スタック）は変更しない。いずれの場合も `font-display: swap` 相当の挙動（CSS の `@font-face` ディスクリプタ。トークン名 `--font-display` とは別物）と、日本語フォールバックスタック（游明朝系等）の維持を必須とする。
+ブランドフォント（見出し・数字用の欧文ディスプレイ）は **`--font-display` トークン**に入れる。本文用の `--font-primary`（和文明朝スタック）は原則そのまま。ただし本文の欧文もブランド書体で揃える方針のブランド（ROPÉ 等）は `--font-primary` の先頭にも同じ欧文書体を追加する（各ブランドの辞書に従う）。いずれの場合も `font-display: swap` 相当の挙動（CSS の `@font-face` ディスクリプタ。トークン名 `--font-display` とは別物）と、日本語フォールバックスタック（游明朝系等）の維持を必須とする。
 
 1. **Google Fonts にあるフォント**: `npm install @fontsource/フォント名` → `main.js` の先頭で `import "@fontsource/フォント名";` → `--font-display` の先頭にフォント名を追加
 2. **ライセンスフォント（支給 woff2）**: `src/assets/fonts/` に配置 → `global.css` に `@font-face`（`font-display: swap` を指定）→ `--font-display` を更新
@@ -61,12 +61,12 @@ npm run build
 ### ROPÉ
 
 - GTM ID: `GTM-KRTNBQ5`
-- favicon: `https://www.junonline.jp/favicon.png`（PNG。取得して `public/favicon.png` に置き、`<link rel="icon" href="/favicon.png" type="image/png" />` に変更）
+- favicon: `https://www.junonline.jp/common/img/apple-touch-icon.png`（PNG・180x180。取得して `public/favicon.png` に置き、`<link rel="icon" href="/favicon.png" type="image/png" />` に変更。※旧 `favicon.png` 直下パスは 404）
 - ロゴリンク先: `https://www.rope-jp.com`
 - ロゴ画像: テンプレ同梱の `src/assets/images/logo.svg` / `rope_white_logo.svg` が ROPÉ 実物（差し替え不要）。alt は `ROPÉ`
 - フッターリンク: ONLINE STORE `https://www.junonline.jp/rope/` / STAFF STYLING `https://www.junonline.jp/rope/styling/` / OTHER CONTENTS `https://www.junonline.jp/news?rope`
 - トップ ONLINE STORE リンク（`.ec__link`）: `https://www.junonline.jp/rope/`（フッターの ONLINE STORE と同じ）
 - SNS: Instagram `https://www.instagram.com/rope_jp/` / Facebook `https://www.facebook.com/rope1968` / X `https://twitter.com/ROPE_JP`
 - コピーライト: `© JUN CO.,LTD. ALL RIGHTS RESERVED.`
-- ブランドフォント: Marcellus（パターン1: `npm install @fontsource/marcellus`）→ `--font-display: "Marcellus", "游明朝", YuMincho, "Hiragino Mincho ProN", serif;`
+- ブランドフォント: Marcellus（パターン1: `npm install @fontsource/marcellus`）→ `--font-display` と `--font-primary` の**両方**の先頭に `"Marcellus"` を追加（例: `"Marcellus", "游明朝", "YuMincho", "Hiragino Mincho ProN", serif`）。※ROPÉ は本文の欧文も Marcellus で揃える方針（テンプレ既定「本文は明朝固定」からの例外）
 - ブランドカラー `--color-primary`: `#000`

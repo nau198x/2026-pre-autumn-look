@@ -20,11 +20,11 @@
   display: flex;
   justify-content: center;
   width: var(--content-width-mobile);
-  margin: 5.625rem auto 1.25rem;
+  margin: 3rem auto;
 
   @media (width >= 768px) {
     width: 100%;
-    margin: 10rem auto;
+    margin: 5rem auto;
   }
 
   .ec__link {
@@ -63,7 +63,9 @@
 
 ```html
 <section class="ec" aria-label="オンラインストア" data-animate>
-  <a class="ec__link" href="https://example.com/" target="_blank" rel="noopener">ONLINE STORE</a>
+  <a class="ec__link" href="https://example.com/" target="_blank" rel="noopener"
+    >ONLINE STORE</a
+  >
 </section>
 ```
 
@@ -71,6 +73,7 @@
 
 - ボタンラベルは「ONLINE STORE」「VIEW ALL ITEMS」等の英語大文字が定番。イタリックが不要なブランドトーンなら font-style を外すだけでよい
 - 同一ページに 2 箇所置く場合、ラベルを変える（中腹「ONLINE STORE」/ 終盤「VIEW ALL ITEMS」等）とクリック計測を分けやすい
+- 上下マージンは上下共通（SP 3rem / PC 5rem）を既定とし、**隣接セクションに応じて調整する**。直前に lead 等のテキストセクションがあると、そのセクションの下パディングと二重になり上が空きすぎる（実例: lead 下 4rem + 旧 ec 上 10rem = 14rem）ので、その場合はこの控えめ値でよい。逆に前後がフルブリード画像で余白ゼロなら大きめ（PC 8〜10rem）に広げる
 - PC の min-width: 30rem（480px）はこの見た目の要。ラベルが長くて折り返す場合は min-width を広げるのではなく padding 側で調整する
 - text-decoration は base.css のリセットで消えている前提。リセットが無い環境では .ec__link に text-decoration: none を追加する
 - hover 反転は透明背景だと効かないため、background-color: var(--color-bg) を必ず持たせる（ヒーロー画像上に重ねる場合など）

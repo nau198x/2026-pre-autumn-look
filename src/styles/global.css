@@ -10,23 +10,66 @@
   --color-rule: #111; /* 濃罫線（枠・グループ境界） */
   --color-rule-light: #aaa; /* 薄罫線（区切り） */
   --color-muted: #999; /* 薄色テキスト（Tag等） */
+  --color-inverse: #fff; /* 画像上に載る白テキスト・ロゴ */
 
-  /* typography（本文 = --font-primary は固定。ブランド差し替えは --font-display のみ） */
-  --font-primary: "游明朝", "YuMincho", "Hiragino Mincho ProN", serif; /* 本文: 和文明朝スタック */
+  /* typography（ROPÉ: 本文の欧文も Marcellus で揃える方針。和文は明朝フォールバック） */
+  --font-primary:
+    "Marcellus", "游明朝", "YuMincho", "Hiragino Mincho ProN", serif; /* 本文: Marcellus（欧文）+ 和文明朝フォールバック */
+
   --font-display:
-    "游明朝", "YuMincho", "Hiragino Mincho ProN", serif; /* 見出し・数字・価格: setup-brand で先頭にブランドの欧文ディスプレイを追加 */
+    "Marcellus", "游明朝", "YuMincho", "Hiragino Mincho ProN", serif; /* 見出し・数字・価格: Marcellus + 和文明朝フォールバック */
 
   /* spacing */
   --spacing-xs: 0.5rem;
   --spacing-sm: 1rem;
   --spacing-md: 2rem;
   --spacing-lg: 4rem;
+  --spacing-xl: 6rem;
 
   /* layout */
   --content-width-mobile: 90%;
+  --content-width-desktop: 80rem; /* ページ全体の最大幅（1280px。Hero 含む） */
+  --content-width-narrow: 40%; /* 以下 look（方式a）の PC 幅プリセット */
+  --content-width-medium: 50%;
+  --content-width-large: 60%;
+  --content-width-wide: 70%;
+  --content-width-full: 80%;
+  --content-width-90v: 90%;
+  --content-width-100v: 100%;
 
   /* motion */
   --ease-out: cubic-bezier(0.215, 0.61, 0.355, 1);
+}
+
+/* ----------------------------------------------------------------
+ Page width cap
+ Hero 含むページ全体を 1280px 上限で中央寄せ。左右のガターは
+ html の背景（--color-bg）が見える。
+----------------------------------------------------------------- */
+body {
+  max-width: var(--content-width-desktop);
+  margin-inline: auto;
+  overflow-x: hidden; /* 全幅ブロック使用時の横スクロール保険 */
+}
+
+/* ----------------------------------------------------------------
+ Responsive line breaks
+ <br class="pc"> … PC のみ改行 / <br class="sp"> … SP のみ改行
+ 反対デバイスでは display:none で改行を無効化（排他）。SP/PC 境界は 768px。
+ セレクタを br に限定し、ブロック出し分けの .pc / .sp と衝突させない。
+----------------------------------------------------------------- */
+br.pc {
+  display: none;
+}
+
+@media (width >= 768px) {
+  br.sp {
+    display: none;
+  }
+
+  br.pc {
+    display: inline;
+  }
 }
 
 /* ----------------------------------------------------------------

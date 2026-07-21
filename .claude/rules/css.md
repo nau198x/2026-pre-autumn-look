@@ -40,8 +40,8 @@ globs: ["src/**/*.css"]
 
 - CSS 変数は `global.css` の `:root` で定義する。色・フォント・イージングは必ずトークンを参照する
 - 余白は `--spacing-*` スケール（`--spacing-xs` 〜 `--spacing-lg`）を基本とする。セクション上下の余白など、スケール外の値が必要な場合は rem 直値も可とする
-- ブランド差し替え対象は `--color-primary` と `--font-display` の 2 つ（setup-brand スキル）。ハードコードしない
-- フォントは 2 役割: `--font-primary` = 本文（和文明朝スタック・固定）/ `--font-display` = 見出し・数字・価格（ブランドの欧文ディスプレイ + 明朝フォールバック）
+- ブランド差し替え対象は `--color-primary` と `--font-display`（本 ROPÉ 案件では `--font-primary` の欧文ブランド書体も。setup-brand スキル）。ハードコードしない
+- フォントは 2 役割: `--font-primary` = 本文 / `--font-display` = 見出し・数字・価格。どちらも先頭にブランドの欧文ディスプレイ（本案件は Marcellus）を置き、和文は明朝スタックへフォールバックする。※テンプレ既定では `--font-primary` は明朝固定だが、本 ROPÉ 案件は本文の欧文もブランド書体で揃える方針
 
 ## 単位・サイズ
 

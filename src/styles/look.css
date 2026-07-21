@@ -1,0 +1,287 @@
+/* ----------------------------------------------------------------
+ Look — 写真ブロック（方式a ユーティリティ）＋ 商品クレジット
+ 画像は自然比率で表示し PC でトリミングしない。
+ 方式a のユーティリティは .look 配下にネストしてスコープを閉じる。
+----------------------------------------------------------------- */
+.look {
+  margin-block: var(--spacing-lg);
+
+  /* --- per-look ヘッダー（見出し + リード文。中央揃え・見出しは上下罫線・写真カラム幅） --- */
+  .look__header {
+    width: var(--content-width-mobile);
+    margin: 0 auto var(--spacing-md);
+    text-align: center;
+  }
+
+  .look__heading {
+    margin-bottom: var(--spacing-md);
+    padding: var(--spacing-sm) 0;
+    border-top: 1px solid var(--color-rule);
+    border-bottom: 1px solid var(--color-rule);
+    font-size: 1.25rem;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+  }
+
+  .look__lead {
+    font-size: 0.8rem;
+    line-height: 1.9;
+    letter-spacing: 0.05em;
+  }
+
+  @media (width >= 768px) {
+    .look__header {
+      width: var(--content-width-wide);
+    }
+
+    .look__heading {
+      padding: var(--spacing-md) 0;
+      font-size: 1.75rem;
+    }
+
+    .look__lead {
+      font-size: 1rem;
+      line-height: 2;
+    }
+  }
+
+  /* --- content block（幅・上下余白。auto で中央寄せ） --- */
+  .content-block {
+    position: relative;
+    margin: var(--spacing-md) auto;
+
+    @media (width >= 768px) {
+      margin-block: var(--spacing-xl);
+    }
+  }
+
+  /* 幅クラス（SP: narrow=60% / 他=90% / 90v・100v はそのまま） */
+  .w-narrow {
+    width: 60%;
+  }
+
+  .w-medium,
+  .w-large,
+  .w-wide,
+  .w-full {
+    width: var(--content-width-mobile);
+  }
+
+  .w-90v {
+    width: var(--content-width-90v);
+  }
+
+  .w-100v {
+    width: var(--content-width-100v);
+  }
+
+  @media (width >= 768px) {
+    .w-narrow {
+      width: var(--content-width-narrow);
+    }
+
+    .w-medium {
+      width: var(--content-width-medium);
+    }
+
+    .w-large {
+      width: var(--content-width-large);
+    }
+
+    .w-wide {
+      width: var(--content-width-wide);
+    }
+
+    .w-full {
+      width: var(--content-width-full);
+    }
+  }
+
+  /* 画像アイテム（自然比率・非トリミング） */
+  .image-item img {
+    display: block;
+    width: 100%;
+  }
+
+  .image-item a {
+    position: relative;
+    display: block;
+    overflow: hidden;
+  }
+
+  .photo {
+    overflow: hidden;
+  }
+
+  /* レイアウト: 単一（中央） */
+  .layout-single .image-gallery {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .layout-single .image-gallery .image-item {
+    width: 100%;
+  }
+
+  /* レイアウト: 2 カラム */
+  .layout-two-col .image-gallery {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5%;
+  }
+
+  .layout-two-col .image-gallery .image-item {
+    flex: 1;
+    min-width: 0;
+  }
+
+  @media (width >= 768px) {
+    .layout-two-col .image-gallery {
+      gap: var(--spacing-md);
+    }
+  }
+
+  /* gap モディファイア（レイアウト既定の gap を上書き） */
+  .gap-medium .image-gallery,
+  .gap-large .image-gallery {
+    gap: 0.5rem;
+  }
+
+  @media (width >= 768px) {
+    .gap-medium .image-gallery {
+      gap: 1.75rem;
+    }
+
+    .gap-large .image-gallery {
+      gap: 4rem;
+    }
+  }
+
+  /* 比率（PC のみ。SP は flex:1 の 50:50） */
+  @media (width >= 768px) {
+    .ratio-55-45 .image-gallery .item-1 {
+      flex: 55;
+    }
+
+    .ratio-55-45 .image-gallery .item-2 {
+      flex: 45;
+    }
+
+    .ratio-45-55 .image-gallery .item-1 {
+      flex: 45;
+    }
+
+    .ratio-45-55 .image-gallery .item-2 {
+      flex: 55;
+    }
+
+    .ratio-40-60 .image-gallery .item-1 {
+      flex: 40;
+    }
+
+    .ratio-40-60 .image-gallery .item-2 {
+      flex: 60;
+    }
+
+    .ratio-60-40 .image-gallery .item-1 {
+      flex: 60;
+    }
+
+    .ratio-60-40 .image-gallery .item-2 {
+      flex: 40;
+    }
+  }
+
+  /* --- 商品クレジット（NAME / PRICE / CLICK 罫線リスト。静的） --- */
+  .credits {
+    position: relative;
+    width: var(--content-width-mobile);
+    margin: var(--spacing-md) auto 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  @media (width >= 768px) {
+    /* クレジットは PC で 25% 幅・右寄せ。右端を写真カラム(.w-wide)の右端に合わせる。
+       margin-right 15% = .w-wide(70%) の片側ガター (100% - 70%) / 2 */
+    .credits {
+      width: 35%;
+      margin-right: 15%;
+      margin-left: auto;
+    }
+  }
+
+  .credits::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 1px;
+    background-color: var(--color-rule);
+  }
+
+  .credits__item {
+    position: relative;
+  }
+
+  .credits__item::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    z-index: 1;
+    width: 100%;
+    height: 1px;
+    background-color: var(--color-rule-light);
+  }
+
+  .credits__item:last-child::after {
+    background-color: var(--color-rule);
+  }
+
+  .credits__link {
+    display: flex;
+    align-items: baseline;
+    justify-content: flex-end;
+    gap: 1.5rem;
+    padding: 0.5rem;
+    font-size: 0.75rem;
+    letter-spacing: 0.05rem;
+    color: inherit;
+    text-decoration: none;
+    transition: background-color 0.2s var(--ease-out);
+  }
+
+  .credits__name {
+    margin-right: auto; /* flex 片側 auto = 左寄せ */
+    color: var(--color-text);
+    transition: color 0.2s var(--ease-out);
+  }
+
+  .credits__price {
+    color: var(--color-text);
+    font-family: var(--font-display);
+    transition: color 0.2s var(--ease-out);
+  }
+
+  .credits__action {
+    color: var(--color-link);
+    letter-spacing: 0.15rem;
+    transition: color 0.2s var(--ease-out);
+  }
+
+  @media (hover: hover) {
+    .credits__link:hover {
+      background-color: var(--color-text);
+    }
+
+    .credits__link:hover .credits__name,
+    .credits__link:hover .credits__price,
+    .credits__link:hover .credits__action {
+      color: var(--color-inverse);
+    }
+  }
+}
