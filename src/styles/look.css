@@ -97,13 +97,16 @@
     }
   }
 
-  /* 画像アイテム（自然比率・非トリミング） */
-  .image-item img {
+  /* 画像（自然比率・非トリミング）。.image-item img だと配下に img を持つ他要素
+     （将来のクレジット内アイコン等）へ漏れるため、.photo 配下に限定する。 */
+  .photo img {
     display: block;
     width: 100%;
   }
 
-  .image-item a {
+  /* 画像リンクのみを対象にする。.image-item a だと配下の .credits__link まで
+     display:block で上書きしてしまうため、.photo 配下に限定する。 */
+  .photo a {
     position: relative;
     display: block;
     overflow: hidden;
@@ -204,11 +207,10 @@
   }
 
   @media (width >= 768px) {
-    /* クレジットは PC で 25% 幅・右寄せ。右端を写真カラム(.w-wide)の右端に合わせる。
-       margin-right 15% = .w-wide(70%) の片側ガター (100% - 70%) / 2 */
+    /* PC: 画像幅の約半分・右寄せ。右端を画像(.image-item)の右端に合わせる（margin-right:0）。 */
     .credits {
-      width: 35%;
-      margin-right: 15%;
+      width: 48%;
+      margin-right: 0;
       margin-left: auto;
     }
   }
@@ -243,9 +245,10 @@
   }
 
   .credits__link {
-    display: flex;
+    /* 均等3列: 商品名=左 / 価格=中央 / CLICK=右。列幅均等で価格・CLICK が縦に揃う */
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
     align-items: baseline;
-    justify-content: flex-end;
     gap: 1.5rem;
     padding: 0.5rem;
     font-size: 0.75rem;
@@ -256,7 +259,6 @@
   }
 
   .credits__name {
-    margin-right: auto; /* flex 片側 auto = 左寄せ */
     color: var(--color-text);
     transition: color 0.2s var(--ease-out);
   }
@@ -264,12 +266,14 @@
   .credits__price {
     color: var(--color-text);
     font-family: var(--font-display);
+    text-align: center;
     transition: color 0.2s var(--ease-out);
   }
 
   .credits__action {
     color: var(--color-link);
     letter-spacing: 0.15rem;
+    text-align: right;
     transition: color 0.2s var(--ease-out);
   }
 

@@ -67,10 +67,14 @@
   }
 
   @media (width >= 1024px) {
-    /* PC: 縦長画像を 1280px 幅（body 上限）いっぱいに表示。黒帯なし・切り抜きなし。
-       Hero 高さは画像比率（look 1–5 の 4:5）に追従するためビューポートより高くなる。
-       画像は base の object-fit: cover のまま（4:5 枠に 4:5 画像＝切れなし）。 */
+    /* PC: 縦長画像を余白付きで表示（額縁）。上下 4rem・左右 16rem。黒帯なし・切り抜きなし。
+       width:100%(base) に margin を足すとはみ出すため width:auto に上書きし、
+       margin 分（左右 32rem）だけ縮ませる。高さは aspect-ratio で比率追従。
+       余白の gutter は body 背景(--color-bg=白)が見える。
+       左右 16rem はスケール外のため rem 直値（上下は --spacing-lg=4rem）。 */
+    width: auto;
     height: auto;
+    margin: var(--spacing-lg) 16rem;
     aspect-ratio: 1024 / 1280;
 
     .hero__overlay {
