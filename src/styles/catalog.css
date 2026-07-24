@@ -1,0 +1,53 @@
+/* ----------------------------------------------------------------
+ Catalog — アイテムサムネイルの 3×N グリッド（上下罫線・索引風）
+ 画像は自然比率で表示（非トリミング）。
+----------------------------------------------------------------- */
+.catalog {
+  width: var(--content-width-mobile);
+  max-width: var(--content-width-desktop);
+  margin: 4rem auto;
+  padding: var(--spacing-md) 0;
+  border-top: 1px solid var(--color-rule);
+  border-bottom: 1px solid var(--color-rule);
+
+  .catalog__grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--spacing-md) 2%;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .catalog__item {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+  }
+
+  .catalog__figure {
+    margin: 0;
+    overflow: hidden;
+
+    a {
+      display: block;
+    }
+
+    img {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+  }
+
+  @media (width >= 768px) {
+    width: 60%;
+    margin: 8rem auto;
+    padding: var(--spacing-xl) 0;
+
+    .catalog__grid {
+      /* --spacing-md(2rem) と --spacing-lg(4rem) の中間。スケール外のため rem 直値 */
+      gap: 3rem;
+    }
+  }
+}
