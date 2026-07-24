@@ -41,7 +41,7 @@
 }
 
 .staff-credit__role {
-  font-size: 0.6rem;
+  font-size: 0.55rem;
   letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--color-muted);
@@ -49,7 +49,7 @@
 }
 
 .staff-credit__name {
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   letter-spacing: 0.1em;
 }
 
@@ -63,11 +63,11 @@
   }
 
   .staff-credit__role {
-    font-size: 0.7rem;
+    font-size: 0.65rem;
   }
 
   .staff-credit__name {
-    font-size: 0.9rem;
+    font-size: 0.85rem;
   }
 }
 ```
@@ -160,7 +160,10 @@
 ### HTML 例
 
 ```html
-<section class="staff-credit staff-credit--with-image" aria-label="Staff Credits">
+<section
+  class="staff-credit staff-credit--with-image"
+  aria-label="Staff Credits"
+>
   <figure class="staff-credit__image" data-animate>
     <img
       src="src/assets/images/staff_offshot.webp"
