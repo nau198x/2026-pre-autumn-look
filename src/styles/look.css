@@ -152,6 +152,11 @@
     gap: 0.5rem;
   }
 
+  /* 極小ギャップ（画像をほぼ密着）。0.25rem = 4px 相当・SP/PC 共通 */
+  .gap-tight .image-gallery {
+    gap: 0.25rem;
+  }
+
   @media (width >= 768px) {
     .gap-medium .image-gallery {
       gap: 1.75rem;
@@ -207,9 +212,10 @@
   }
 
   @media (width >= 768px) {
-    /* PC: 画像幅の約半分・右寄せ。右端を画像(.image-item)の右端に合わせる（margin-right:0）。 */
+    /* PC: 幅は固定（--credit-width）でブロック幅に依存させず全ブロック共通。
+       右端は画像(.image-item)の右端に右寄せ（margin-right:0 + margin-left:auto）。 */
     .credits {
-      width: 48%;
+      width: var(--credit-width);
       margin-right: 0;
       margin-left: auto;
     }
