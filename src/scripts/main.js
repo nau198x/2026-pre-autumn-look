@@ -5,6 +5,7 @@ import "../styles/global.css";
 import "../styles/hero.css";
 import "../styles/lead.css";
 import "../styles/look.css";
+import "../styles/staff-credit.css";
 import "../styles/ec.css";
 import "../styles/footer.css";
 

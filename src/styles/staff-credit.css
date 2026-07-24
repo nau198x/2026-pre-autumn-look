@@ -1,0 +1,49 @@
+/* ----------------------------------------------------------------
+ Staff Credit — 撮影スタッフクレジット（役職 + 氏名の中央型リスト）
+ 役職は英語・uppercase・muted。氏名は支給表記のまま。
+----------------------------------------------------------------- */
+.staff-credit {
+  padding: 4rem var(--spacing-sm);
+  text-align: center;
+
+  .staff-credit__list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+  }
+
+  .staff-credit__item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .staff-credit__role {
+    font-size: 0.55rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--color-muted);
+    line-height: 2;
+  }
+
+  .staff-credit__name {
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+  }
+
+  @media (width >= 768px) {
+    padding: 8rem var(--spacing-md);
+
+    .staff-credit__list {
+      gap: var(--spacing-lg);
+    }
+
+    .staff-credit__role {
+      font-size: 0.65rem;
+    }
+
+    .staff-credit__name {
+      font-size: 0.85rem;
+    }
+  }
+}
