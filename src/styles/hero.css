@@ -19,68 +19,135 @@
     }
   }
 
+  /* 下端を背景色へ溶かして画像のエッジを隠す。直下の .lead も --color-bg なので継ぎ目が消える。
+     z-index 3 = オーバーレイ(2)より上。オーバーレイの暗いグラデも一緒に溶かすため
+     （下に敷くと 35% 黒が白フェードの上に乗って白まで届かない）。
+     キャッチはこの帯より上（overlay の padding-bottom）へ逃がしてあるので白飛びしない。 */
+  &::after {
+    position: absolute;
+    inset-inline: 0;
+    bottom: 0;
+    z-index: 3;
+    height: 4rem;
+    pointer-events: none;
+    content: "";
+    background: linear-gradient(180deg, transparent, var(--color-bg));
+  }
+
   .hero__overlay {
     position: absolute;
     inset: 0;
     z-index: 2;
     display: flex;
-    align-items: center;
-    justify-content: center;
+    flex-direction: column;
+    justify-content: space-between; /* ロゴ=上 / キャッチ=下 */
     padding: var(--spacing-md);
+    padding-bottom: 5rem; /* フェード帯 4rem ＋ クリアランス 1rem */
     pointer-events: none;
     background: linear-gradient(180deg, rgb(0 0 0 / 15%), rgb(0 0 0 / 35%));
   }
 
-  .hero__title {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: var(--spacing-sm);
-    margin: 0;
-    text-align: center;
-  }
-
   .hero__logo {
-    width: min(60vw, 240px);
+    align-self: flex-end; /* 右上隅 */
+    width: min(30vw, 7.5rem);
     height: auto;
     filter: drop-shadow(0 2px 12px rgb(0 0 0 / 30%));
   }
 
   .hero__catch {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-xs);
+    margin: 0;
     font-family: var(--font-display);
-    font-size: 1rem;
-    font-weight: 400;
-    letter-spacing: 0.2em;
+    font-weight: 400; /* h1 の既定 bold を打ち消す */
     color: var(--color-inverse);
+    text-align: center;
     text-shadow: 0 1px 8px rgb(0 0 0 / 40%);
   }
 
+  /* SP: サブ・メイン 2 行の計 3 行を共通幅 14rem(224px) に揃える。
+     行ごとに素の幅が違うため字間を個別に持たせる（1 本の letter-spacing では揃わない。
+     text-align-last: justify は単語間しか伸びず COLLECTION に効かないため使えない）。
+     letter-spacing は「最後の文字の後ろ」にも入るので、負の margin-inline-end で
+     相殺しないと (a) 実幅が字間 1 つぶん広がり (b) 中央寄せが左へずれる。
+     stylelint が margin に em を許さない（rem / % のみ）ため rem 換算で書く。
+     字間は Marcellus の実測から逆算: L = (224px - 素の幅) / 字間数 */
+  .hero__catch-sub {
+    margin-inline-end: -0.228rem; /* = 0.7rem × 0.326em */
+    font-size: 0.7rem;
+    letter-spacing: 0.326em; /* (224 - 143.66) / 22 字間 / 11.2px */
+  }
+
+  .hero__catch-main {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-size: 1.75rem;
+    line-height: 1.2; /* base.css の 1.5 では 2 行の行間が空きすぎるため詰める */
+  }
+
+  .hero__catch-line--a {
+    margin-inline-end: -0.322rem; /* = 1.75rem × 0.184em */
+    letter-spacing: 0.184em; /* (224 - 177.67) / 9 字間 / 28px */
+  }
+
+  .hero__catch-line--b {
+    margin-inline-end: -0.393rem; /* = 1.75rem × 0.225em */
+    letter-spacing: 0.225em; /* (224 - 167.36) / 9 字間 / 28px */
+  }
+
   @media (width >= 768px) {
-    .hero__logo {
-      width: min(36vw, 380px);
+    &::after {
+      height: 6rem;
     }
 
-    .hero__catch {
-      font-size: 1.25rem;
-      letter-spacing: 0.28em;
+    .hero__overlay {
+      padding-bottom: 7rem; /* フェード帯 6rem ＋ クリアランス 1rem */
+    }
+
+    .hero__logo {
+      width: 10rem;
+    }
+
+    /* サブとメインの行幅を一致させる（実測で字間を決定）。
+       letter-spacing は「各文字の後ろ」に入るため、末尾 1 つぶんを負のマージンで
+       相殺しないと (a) 実幅が字間 1 つぶん広がり (b) 中央寄せが左へずれる。
+       stylelint が margin に em を許さない（rem / % のみ）ため rem 換算で書く。
+       両行とも視覚幅 540.8px で一致（Marcellus 実測）。 */
+    .hero__catch-sub {
+      margin-inline-end: -0.895rem; /* = 1.1rem × 0.814em */
+      font-size: 1.1rem;
+      letter-spacing: 0.814em; /* (540.80 - 225.75) / 22 字間 / 17.6px */
+    }
+
+    .hero__catch-main {
+      display: block; /* flex を解除 → 2 span がインラインに戻り 1 行に連結される */
+      margin-inline-end: -0.27rem; /* = 2.25rem × 0.12em */
+      font-size: 2.25rem;
+      line-height: 1.5; /* PC は 1 行なので base.css の値に戻す（行送りを変えると位置がずれる） */
+      letter-spacing: 0.12em; /* 0.2em から詰め、1024×768（内寸 550px）でも 1 行に収める */
+    }
+
+    /* SP の行別字間・相殺マージンを解除し、親の 0.12em を継承させる。
+       詳細度は SP 側の --a / --b と同じ (0,1,0)。後に書いているので勝つ。 */
+    .hero__catch-line {
+      margin-inline-end: 0;
+      letter-spacing: inherit;
     }
   }
 
   @media (width >= 1024px) {
-    /* PC: 縦長画像を余白付きで表示（額縁）。上下 4rem・左右 16rem。黒帯なし・切り抜きなし。
-       width:100%(base) に margin を足すとはみ出すため width:auto に上書きし、
-       margin 分（左右 32rem）だけ縮ませる。高さは aspect-ratio で比率追従。
-       余白の gutter は body 背景(--color-bg=白)が見える。
-       左右 16rem はスケール外のため rem 直値（上下は --spacing-lg=4rem）。 */
-    width: auto;
+    /* PC: 縦長画像を切り抜かずに全体表示。高さは画面ぴったり（上下余白ゼロ）。
+       幅は高さから比率で逆算（0.8 = 1024 / 1280）。左右に残る gutter は
+       body 背景(--color-bg=白)が見える。
+       min() の第 2 項 100% は body の max-width(80rem) 側の頭打ち。
+       極端に縦長のウィンドウ（幅 1280px × 高 1600px 超）では第 2 項が効いて
+       Hero が画面高より低くなるが、実用上は起きない。 */
+    width: min(100dvh * 0.8, 100%);
     height: auto;
-    margin: var(--spacing-lg) 16rem;
+    margin-inline: auto;
     aspect-ratio: 1024 / 1280;
-
-    .hero__overlay {
-      /* 縦長 Hero では中央だとロゴがファーストビュー外へ落ちるため上寄せ */
-      align-items: flex-start;
-      padding-top: var(--spacing-lg);
-    }
   }
 }
