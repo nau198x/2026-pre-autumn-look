@@ -1,0 +1,58 @@
+/* ----------------------------------------------------------------
+ Preloader
+ ロゴが下から塗り上がるローディング画面（src/scripts/preloader.js）。
+ 背景は Hero イントロの開始色と同じ白なので、カバーが消える瞬間に
+ 継ぎ目が出ない。スクロールロックは body.is-scroll-locked（global.css）側。
+----------------------------------------------------------------- */
+.preloader {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--color-bg);
+  transition: opacity 0.8s ease-out;
+
+  /* ロゴ本体は空 div。形は mask で抜き、塗りは background のグラデで表す */
+  .preloader__logo {
+    width: 6rem;
+    aspect-ratio: 1024 / 337.427; /* rope_white_logo.svg の viewBox 比 */
+
+    /* 下から --progress% までが塗り色、それより上は下地色 */
+    background: linear-gradient(
+      to top,
+      var(--color-text) 0%,
+      var(--color-text) var(--progress, 0%),
+      var(--color-fill-base) var(--progress, 0%),
+      var(--color-fill-base) 100%
+    );
+    mask-image: url("../assets/images/rope_white_logo.svg");
+    mask-repeat: no-repeat;
+    mask-position: center;
+    mask-size: contain;
+    transition: opacity 0.6s ease-out;
+  }
+
+  &.is-logo-hidden .preloader__logo {
+    opacity: 0;
+  }
+
+  &.is-hidden {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  @media (width >= 768px) {
+    .preloader__logo {
+      width: 8rem;
+    }
+  }
+}
+
+/* JS 無効環境では出さない（出したまま消せなくなるため） */
+@media (scripting: none) {
+  .preloader {
+    display: none;
+  }
+}

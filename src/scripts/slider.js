@@ -21,7 +21,7 @@ export const initSlider = () => {
     allowTouchMove: false,
     speed: prefersReducedMotion ? 0 : 1600,
     autoplay: {
-      delay: 4500,
+      delay: 2000,
       disableOnInteraction: false,
     },
   });

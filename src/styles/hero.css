@@ -42,6 +42,7 @@
     align-self: flex-end; /* 右上隅 */
     width: min(30vw, 7.5rem);
     height: auto;
+
     /* filter: drop-shadow(0 2px 12px rgb(0 0 0 / 30%)); */
   }
 
@@ -55,7 +56,9 @@
     font-weight: 400; /* h1 の既定 bold を打ち消す */
     color: var(--color-inverse);
     text-align: center;
-    text-shadow: 0 1px 8px rgb(0 0 0 / 40%);
+    margin-bottom: 2rem;
+
+    /* text-shadow: 0 1px 8px rgb(0 0 0 / 40%); */
   }
 
   /* SP: サブ・メイン 2 行の計 3 行を共通幅 14rem(224px) に揃える。

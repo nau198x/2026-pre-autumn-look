@@ -3,6 +3,13 @@
   <head prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb# website: http://ogp.me/ns/website#">
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- スクロール位置の復元を無効化する。Hero のイントロは必ずページ先頭から再生する必要があり、
+         復元されたままだと Hero が画面外なのに演出だけが進んでしまう。
+         Chrome は DOMContentLoaded より前に復元を始めるため、head のインラインで最速に設定する -->
+    <script>
+      if ("scrollRestoration" in history) history.scrollRestoration = "manual";
+    </script>
     <meta name="description" content="ROPÉ 2026年プレオータムの新作ルックをご紹介します。" />
     <title>ROPÉ 2026 PRE-AUTUMN LOOK</title>
 
@@ -22,6 +29,15 @@
     <meta name="twitter:url" content="https://www.junonline.jp/rope/" />
 
     <link rel="icon" href="/favicon.png" type="image/png" />
+
+    <!-- フォントは CSS のダウンロード・解析を経ないと発見されず直列化するため先に取りに行かせる -->
+    <link
+      rel="preload"
+      as="font"
+      type="font/woff2"
+      href="/node_modules/@fontsource/marcellus/files/marcellus-latin-400-normal.woff2"
+      crossorigin
+    />
 
     <!-- Google Tag Manager -->
     <script>
@@ -54,26 +70,47 @@
     </noscript>
     <!-- End Google Tag Manager (noscript) -->
 
+    <div class="preloader" role="status" aria-label="Loading" data-preloader>
+      <div class="preloader__logo" aria-hidden="true"></div>
+    </div>
+
     <section class="hero" aria-label="メインビジュアル">
       <div class="hero__swiper swiper">
         <div class="swiper-wrapper">
+          <!-- 1.webp はイントロ最後に残る主役、6.webp はイントロで最初に現れる。この 2 枚を優先取得する -->
           <div class="swiper-slide">
-            <img src="src/assets/images/hero/1.webp" alt="" loading="eager" fetchpriority="high" width="1280" height="1600" />
+            <img
+              src="src/assets/images/hero/1.webp"
+              alt=""
+              loading="eager"
+              fetchpriority="high"
+              decoding="async"
+              width="1280"
+              height="1600"
+            />
           </div>
           <div class="swiper-slide">
-            <img src="src/assets/images/hero/2.webp" alt="" loading="eager" width="1280" height="1600" />
+            <img src="src/assets/images/hero/2.webp" alt="" loading="eager" decoding="async" width="1280" height="1600" />
           </div>
           <div class="swiper-slide">
-            <img src="src/assets/images/hero/3.webp" alt="" loading="eager" width="1280" height="1600" />
+            <img src="src/assets/images/hero/3.webp" alt="" loading="eager" decoding="async" width="1280" height="1600" />
           </div>
           <div class="swiper-slide">
-            <img src="src/assets/images/hero/4.webp" alt="" loading="eager" width="1280" height="1600" />
+            <img src="src/assets/images/hero/4.webp" alt="" loading="eager" decoding="async" width="1280" height="1600" />
           </div>
           <div class="swiper-slide">
-            <img src="src/assets/images/hero/5.webp" alt="" loading="eager" width="1280" height="1600" />
+            <img src="src/assets/images/hero/5.webp" alt="" loading="eager" decoding="async" width="1280" height="1600" />
           </div>
           <div class="swiper-slide">
-            <img src="src/assets/images/hero/6.webp" alt="" loading="eager" width="1280" height="1600" />
+            <img
+              src="src/assets/images/hero/6.webp"
+              alt=""
+              loading="eager"
+              fetchpriority="high"
+              decoding="async"
+              width="1280"
+              height="1600"
+            />
           </div>
         </div>
       </div>

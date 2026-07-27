@@ -11,6 +11,7 @@
   --color-rule-light: #aaa; /* 薄罫線（区切り） */
   --color-muted: #999; /* 薄色テキスト（Tag等） */
   --color-inverse: #fff; /* 画像上に載る白テキスト・ロゴ */
+  --color-fill-base: #e5e5e5; /* 塗り演出の下地（プリローダーのロゴ未塗り部分） */
 
   /* typography（ROPÉ: 本文の欧文も Marcellus で揃える方針。和文は明朝フォールバック） */
   --font-primary:
