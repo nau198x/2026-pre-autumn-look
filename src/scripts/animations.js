@@ -157,6 +157,8 @@ export const initLookHeadingReveal = () => {
 //   data-animate-ease     … イージング
 //   data-animate-start    … ScrollTrigger の開始位置
 //   data-animate-delay    … 開始遅延 秒
+//   data-animate-fade-ease … 透明度だけ別のイージングにする（既定は移動と同じ）
+//   data-animate-skew     … 出発時の skewY 傾き deg。負値で逆向き
 export const initScrollAnimations = () => {
   if (prefersReducedMotion) return;
 
@@ -167,23 +169,38 @@ export const initScrollAnimations = () => {
       animateEase = "power2.out",
       animateStart = "top 85%",
       animateDelay = 0,
+      animateFadeEase,
+      animateSkew = 0,
     } = el.dataset;
 
-    gsap.fromTo(
-      el,
-      { opacity: 0, y: Number(animateDistance) },
-      {
-        opacity: 1,
-        y: 0,
-        duration: Number(animateDuration),
-        delay: Number(animateDelay),
-        ease: animateEase,
-        scrollTrigger: {
-          trigger: el,
-          start: animateStart,
-          once: true,
-        },
+    const duration = Number(animateDuration);
+
+    // 透明度と移動でイージングを分けられるよう tween を 2 本に割る。
+    // GSAP は 1 tween 内のプロパティ個別イージング（{ value, ease }）に対応しておらず、
+    // 渡すとオブジェクトがそのまま代入されて壊れる（3.15 で実測）。
+    // hero.js がフェードと移動を別 tween にしているのと同じ理由・同じ形
+    const tl = gsap.timeline({
+      delay: Number(animateDelay),
+      scrollTrigger: {
+        trigger: el,
+        start: animateStart,
+        once: true,
       },
+    });
+
+    tl.fromTo(
+      el,
+      { opacity: 0 },
+      { opacity: 1, duration, ease: animateFadeEase ?? animateEase },
+      0,
+    );
+    // skewY は移動と同じ tween に載せ、同じカーブで水平へ戻す。
+    // 剪断が縦方向だけなので、rotate と違って横方向にはみ出さない
+    tl.fromTo(
+      el,
+      { y: Number(animateDistance), skewY: Number(animateSkew) },
+      { y: 0, skewY: 0, duration, ease: animateEase },
+      0,
     );
   }
 };
