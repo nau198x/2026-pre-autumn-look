@@ -30,21 +30,37 @@ export const initHeroParallax = () => {
   });
 };
 
+// [data-animate] を一括で拾うスクロールリビール。
+// セクションごとの差は HTML 側のデータ属性で上書きする（JS を触らずに調整できる）:
+//   data-animate-distance … 下からの移動量 px。0 でフェードのみ
+//   data-animate-duration … 秒数
+//   data-animate-ease     … イージング
+//   data-animate-start    … ScrollTrigger の開始位置
+//   data-animate-delay    … 開始遅延 秒
 export const initScrollAnimations = () => {
   if (prefersReducedMotion) return;
 
   for (const el of gsap.utils.toArray("[data-animate]")) {
+    const {
+      animateDistance = 30,
+      animateDuration = 0.6,
+      animateEase = "power2.out",
+      animateStart = "top 85%",
+      animateDelay = 0,
+    } = el.dataset;
+
     gsap.fromTo(
       el,
-      { opacity: 0, y: 30 },
+      { opacity: 0, y: Number(animateDistance) },
       {
         opacity: 1,
         y: 0,
-        duration: 0.6,
-        ease: "power2.out",
+        duration: Number(animateDuration),
+        delay: Number(animateDelay),
+        ease: animateEase,
         scrollTrigger: {
           trigger: el,
-          start: "top 85%",
+          start: animateStart,
           once: true,
         },
       },

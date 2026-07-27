@@ -129,7 +129,15 @@
 
     <div class="contents">
       <section class="lead" aria-label="コンセプト">
-        <div class="lead__inner" data-animate>
+        <!-- Y 移動なしで、ゆるやかにフェードさせる -->
+        <div
+          class="lead__inner"
+          data-animate
+          data-animate-distance="0"
+          data-animate-duration="1.4"
+          data-animate-ease="power1.out"
+          data-animate-start="top 85%"
+        >
           <h2 class="lead__tag">- MODERN HERITAGE -</h2>
           <p class="lead__jp" lang="ja">
             「ROPÉ」のクラシックで伝統的なデザインを<br class="sp" />現代の感覚と融合。<br />
@@ -138,7 +146,7 @@
         </div>
       </section>
 
-      <section class="ec" aria-label="オンラインストア" data-animate>
+      <section class="ec" aria-label="オンラインストア" data-animate data-animate-distance="0">
         <a class="ec__link" href="https://www.junonline.jp/rope/" target="_blank" rel="noopener">ONLINE STORE</a>
       </section>
 
@@ -1122,7 +1130,7 @@
         </ul>
       </section>
 
-      <section class="ec" aria-label="オンラインストア" data-animate>
+      <section class="ec" aria-label="オンラインストア" data-animate data-animate-distance="0">
         <a class="ec__link" href="https://www.junonline.jp/rope/" target="_blank" rel="noopener">ONLINE STORE</a>
       </section>
 
