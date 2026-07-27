@@ -82,3 +82,13 @@ br.pc {
     opacity: 0;
   }
 }
+
+/* ----------------------------------------------------------------
+ Scroll lock（utils/scroll-lock.js とワンセット）
+ Hero イントロ等のオーバーレイ演出中に背面スクロールを止める
+----------------------------------------------------------------- */
+body.is-scroll-locked {
+  overflow: hidden; /* デスクトップのホイール・スクロールバー操作を止める */
+  touch-action: none; /* iOS Safari のタッチスクロールを止める */
+  overscroll-behavior: none; /* Android Chrome 等の overscroll bounce を止める */
+}

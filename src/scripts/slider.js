@@ -12,7 +12,7 @@ export const initSlider = () => {
     "(prefers-reduced-motion: reduce)",
   ).matches;
 
-  new Swiper(heroSwiperEl, {
+  const heroSwiper = new Swiper(heroSwiperEl, {
     modules: [EffectFade, Autoplay],
     effect: "fade",
     fadeEffect: { crossFade: false },
@@ -25,4 +25,15 @@ export const initSlider = () => {
       disableOnInteraction: false,
     },
   });
+
+  // オープニング（hero.js）が終わるまで autoplay を止めておく。
+  // reduced-motion ではゲートしない（合図となる演出自体がスキップされるため）
+  if (!prefersReducedMotion) {
+    heroSwiper.autoplay.stop();
+    document.addEventListener(
+      "hero:animation-complete",
+      () => heroSwiper.autoplay.start(),
+      { once: true },
+    );
+  }
 };

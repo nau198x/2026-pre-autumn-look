@@ -31,16 +31,18 @@
     display: flex;
     flex-direction: column;
     justify-content: space-between; /* ロゴ=上 / キャッチ=下 */
-    padding: var(--spacing-md);
+    padding: 1.5rem;
     pointer-events: none;
-    background: linear-gradient(180deg, rgb(0 0 0 / 15%), rgb(0 0 0 / 35%));
+
+    /* 写真を暗くしない方針。ロゴ・キャッチの可読性は
+       文字側の影（text-shadow 等）だけで確保する */
   }
 
   .hero__logo {
     align-self: flex-end; /* 右上隅 */
     width: min(30vw, 7.5rem);
     height: auto;
-    filter: drop-shadow(0 2px 12px rgb(0 0 0 / 30%));
+    /* filter: drop-shadow(0 2px 12px rgb(0 0 0 / 30%)); */
   }
 
   .hero__catch {
@@ -89,7 +91,7 @@
 
   @media (width >= 768px) {
     .hero__logo {
-      width: 10rem;
+      width: 8rem;
     }
 
     /* サブとメインの行幅を一致させる（実測で字間を決定）。
@@ -130,5 +132,30 @@
     height: auto;
     margin-inline: auto;
     aspect-ratio: 1024 / 1280;
+  }
+
+  /* イントロ入場（hero.js）の初期状態。JS 有効かつモーション許可時のみ隠す
+     （JS 無効・reduced-motion では最初から完成状態）。
+     is-hero-ready はイントロ完了時に付与され、このガードを解除する。
+     slide 自体の opacity は Swiper が inline で管理するため触らず、img 側を隠す */
+  @media (scripting: enabled) and (prefers-reduced-motion: no-preference) {
+    &:not(.is-hero-ready) {
+      background-color: var(--color-bg); /* 白背景から始める */
+
+      .hero__swiper {
+        overflow: visible; /* 回転した写真の角を切らない（Swiper 既定は hidden） */
+        transform: scale(
+          0.7
+        ); /* 画面の約 7 割サイズで出現し、最後に 1 へ拡大 */
+      }
+
+      .swiper-slide img {
+        opacity: 0;
+      }
+
+      .hero__overlay {
+        opacity: 0;
+      }
+    }
   }
 }
