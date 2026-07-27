@@ -85,6 +85,34 @@ br.pc {
 }
 
 /* ----------------------------------------------------------------
+ Split Text（utils/split-text.js が生成する構造用）
+ 1 文字リビール。.char-mask で刈り取り、中の .char を yPercent で動かす。
+----------------------------------------------------------------- */
+
+/* line-height は必ず親と揃える（inherit）。親より小さくすると vertical-align: bottom で
+   マスクが行ボックスの下端に貼り付き、その差分ぶん文字が下へずれて描画される
+   （行送り 1.5 の見出しでマスクだけ 1.2 にすると 4px 沈む実測あり）。
+   親の line-height が 1.2 を下回る箇所で使う場合はディセンダの刈り取りに注意 */
+.char-mask {
+  display: inline-block;
+  overflow: hidden;
+  line-height: inherit;
+  vertical-align: bottom;
+}
+
+.char {
+  display: inline-block;
+  line-height: inherit;
+}
+
+/* inline-block の文字 span は単語の途中でも折り返すため、
+   英文見出しは単語ごとにこのラッパーで包んで折り返し位置を単語境界に固定する */
+.word {
+  display: inline-block;
+  white-space: nowrap;
+}
+
+/* ----------------------------------------------------------------
  Scroll lock（utils/scroll-lock.js とワンセット）
  Hero イントロ等のオーバーレイ演出中に背面スクロールを止める
 ----------------------------------------------------------------- */

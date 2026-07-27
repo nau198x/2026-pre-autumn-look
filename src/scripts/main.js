@@ -12,7 +12,11 @@ import "../styles/catalog.css";
 import "../styles/ec.css";
 import "../styles/footer.css";
 
-import { initHeroParallax, initScrollAnimations } from "./animations.js";
+import {
+  initHeroParallax,
+  initLookHeadingReveal,
+  initScrollAnimations,
+} from "./animations.js";
 import { initHero } from "./hero.js";
 import { runPreloader } from "./preloader.js";
 import { initSlider } from "./slider.js";
@@ -40,6 +44,9 @@ document.addEventListener("DOMContentLoaded", () => {
     "hero:animation-complete",
     () => {
       initHeroParallax();
+      // 文字分割で見出しの高さが動きうるので、[data-animate] の
+      // ScrollTrigger を生成する initScrollAnimations より先に呼ぶ
+      initLookHeadingReveal();
       initScrollAnimations();
     },
     { once: true },

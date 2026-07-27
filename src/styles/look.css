@@ -13,14 +13,61 @@
     text-align: center;
   }
 
+  /* 「番号 │ 英字」の 3 アイテム構成（番号 / 縦罫 / 英字）。gap 1 本で左右の余白が揃う
+     （text-align: center は flex コンテナに効かないので justify-content で代替）。
+     flex-wrap は付けない: 折り返すと縦罫だけが 1 行目に取り残されるため、
+     入り切らない場合は英字側が内部で折り返すほうが自然 */
   .look__heading {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem; /* 番号 ↔ 縦罫 ↔ 英字 */
     margin-bottom: var(--spacing-md);
     padding: var(--spacing-sm) 0;
-    border-top: 1px solid var(--color-rule);
-    border-bottom: 1px solid var(--color-rule);
+
+    /* border は伸縮できないので上下罫線の実体は擬似要素で描く。
+       border 自体は透明のまま残し、高さ（1px × 2）を維持する */
+    border-top: 1px solid transparent;
+    border-bottom: 1px solid transparent;
     font-size: 1.25rem;
     font-weight: 500;
     letter-spacing: 0.05em;
+
+    /* 上下罫線。flex コンテナの擬似要素は absolute にしないと
+       フレックスアイテムとしてレイアウトに割り込む。
+       scaleX は GSAP が .look__heading に載せるカスタムプロパティで駆動する
+       （擬似要素は DOM ノードが無く GSAP のターゲットにできないため）。
+       既定値 1 なので JS 無効・reduced-motion では最初から全幅で出る */
+    &::before,
+    &::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      width: 100%;
+      height: 1px;
+      background-color: var(--color-rule);
+      transform: scaleX(var(--heading-line-scale, 1));
+      transform-origin: left;
+    }
+
+    &::before {
+      top: -1px; /* 含有ブロック = padding ボックスなので -1px が border-top の位置 */
+    }
+
+    &::after {
+      bottom: -1px;
+    }
+  }
+
+  /* 番号と英字を分ける縦罫。GSAP でフェードさせるため擬似要素ではなく実要素にしてある
+     （擬似要素は DOM ノードが無く GSAP のターゲットにできない）。
+     高さを em にしてあるので、PC で font-size が 1.75rem に上がれば線も自動で伸びる */
+  .look__heading-rule {
+    flex: none; /* 1px しかないので縮まないよう固定 */
+    width: 1px;
+    height: 0.9em;
+    background-color: var(--color-rule);
   }
 
   .look__lead {
@@ -34,7 +81,9 @@
       width: var(--content-width-wide);
     }
 
+    /* 縦罫まわりの余白は文字サイズの比（1.25rem → 1.75rem = 1.4 倍）に合わせて広げる */
     .look__heading {
+      gap: 1.5rem;
       padding: var(--spacing-md) 0;
       font-size: 1.75rem;
     }
