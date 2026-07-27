@@ -5,11 +5,11 @@
   display: flex;
   justify-content: center;
   width: var(--content-width-mobile);
-  margin: 3rem auto;
+  margin: 1rem auto 2rem auto;
 
   @media (width >= 768px) {
     width: 100%;
-    margin: 5rem auto;
+    margin: 1.5rem auto 8rem auto;
   }
 
   .ec__link {
