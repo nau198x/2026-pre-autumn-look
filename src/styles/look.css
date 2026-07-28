@@ -104,11 +104,8 @@
     }
   }
 
-  /* 幅クラス（SP: narrow=60% / 他=90% / 90v・100v はそのまま） */
-  .w-narrow {
-    width: 60%;
-  }
-
+  /* 幅クラス（SP: 全ブロック 90%。幅の差は PC で付ける / 90v・100v はそのまま） */
+  .w-narrow,
   .w-medium,
   .w-large,
   .w-wide,
@@ -121,6 +118,12 @@
   }
 
   .w-100v {
+    width: var(--content-width-100v);
+  }
+
+  /* SP: 2 カラムだけ全幅にして 1 枚あたりの面積を確保する。
+     PC は下の 768px 以降の .w-wide（同じ詳細度・後勝ち）が 70% に戻す */
+  .layout-two-col {
     width: var(--content-width-100v);
   }
 
@@ -274,6 +277,12 @@
     list-style: none;
   }
 
+  /* SP: 2 カラムはブロックが全幅なので、そのままだとクレジットだけ広くなる。
+     single ブロック（90% × 90% ＝ 画面の 81%）と同じ実寸に揃える */
+  .layout-two-col .credits {
+    width: calc(var(--content-width-mobile) * 0.9);
+  }
+
   @media (width >= 768px) {
     /* PC: 幅は固定（--credit-width）でブロック幅に依存させず全ブロック共通。
        右端は画像(.image-item)の右端に右寄せ（margin-right:0 + margin-left:auto）。 */
@@ -281,6 +290,12 @@
       width: var(--credit-width);
       margin-right: 0;
       margin-left: auto;
+    }
+
+    /* 上の SP ルール（詳細度 0,2,0）が .credits（0,1,0）に勝ってしまうので、
+       PC では明示的に固定幅へ戻す */
+    .layout-two-col .credits {
+      width: var(--credit-width);
     }
   }
 
