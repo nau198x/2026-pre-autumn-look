@@ -15,7 +15,6 @@ import "../styles/footer.css";
 
 import {
   initCreditsReveal,
-  initHeroParallax,
   initLookHeadingReveal,
   initScrollAnimations,
 } from "./animations.js";
@@ -51,7 +50,6 @@ document.addEventListener("DOMContentLoaded", () => {
       // 分散する（順序は維持。ScrollTrigger は作成時に現在のスクロール位置で
       // 評価されるので、数フレーム遅れても通過済みのトリガーは即発火する）
       const steps = [
-        initHeroParallax,
         // 文字分割で見出しの高さが動きうるので、[data-animate] の
         // ScrollTrigger を生成する initScrollAnimations より先に呼ぶ
         initLookHeadingReveal,
