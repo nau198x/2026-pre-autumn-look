@@ -151,6 +151,10 @@
   .photo img {
     display: block;
     width: 100%;
+
+    /* ホバー拡大用。GSAP のリビールは祖先の .content-block に y / skewY を載せるだけで
+       img 自身の transform は触らないため衝突しない */
+    transition: transform 0.4s var(--ease-out);
   }
 
   /* 画像リンクのみを対象にする。.image-item a だと配下の .credits__link まで
@@ -163,6 +167,16 @@
 
   .photo {
     overflow: hidden;
+  }
+
+  /* ホバー拡大はリンクのある画像だけ（押せない画像は反応させない）。
+     タッチ端末では :hover がタップ後に残り続けるため hover 可能な環境に限定し、
+     拡縮は明確なモーションなので reduced-motion では無効にする
+     （global.css の [data-animate] と同じ組み合わせ方） */
+  @media (hover: hover) and (prefers-reduced-motion: no-preference) {
+    .photo a:hover img {
+      transform: scale(1.02);
+    }
   }
 
   /* レイアウト: 単一（中央） */
@@ -318,37 +332,37 @@
     letter-spacing: 0.05rem;
     color: inherit;
     text-decoration: none;
-    transition: background-color 0.2s var(--ease-out);
+
+    /* 罫線は li の擬似要素なので、<a> に opacity を載せてもテキストだけが薄くなる。
+       GSAP のリビールは .line の yPercent とカスタムプロパティしか触らないため衝突しない */
+    transition: opacity 0.3s var(--ease-out);
   }
 
   .credits__name {
     color: var(--color-text);
-    transition: color 0.2s var(--ease-out);
   }
 
   .credits__price {
     color: var(--color-text);
     font-family: var(--font-display);
     text-align: center;
-    transition: color 0.2s var(--ease-out);
   }
 
   .credits__action {
     color: var(--color-link);
     letter-spacing: 0.15rem;
     text-align: right;
-    transition: color 0.2s var(--ease-out);
   }
 
+  /* タッチ端末では :hover がタップ後に残り続けるため hover 可能な環境に限定する。
+     キーボードフォーカスは端末を問わず対象にしたいので別セレクタで並べる */
   @media (hover: hover) {
     .credits__link:hover {
-      background-color: var(--color-text);
+      opacity: 0.4;
     }
+  }
 
-    .credits__link:hover .credits__name,
-    .credits__link:hover .credits__price,
-    .credits__link:hover .credits__action {
-      color: var(--color-inverse);
-    }
+  .credits__link:focus-visible {
+    opacity: 0.4;
   }
 }
