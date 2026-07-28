@@ -46,18 +46,31 @@ document.addEventListener("DOMContentLoaded", () => {
   document.addEventListener(
     "hero:animation-complete",
     () => {
-      initHeroParallax();
-      // 文字分割で見出しの高さが動きうるので、[data-animate] の
-      // ScrollTrigger を生成する initScrollAnimations より先に呼ぶ
-      initLookHeadingReveal();
-      initCreditsReveal();
-      initScrollAnimations();
-      // フローティング CTA も ScrollTrigger 製なので、他と同じくロック解除後に作る。
-      // 上部の ONLINE STORE を通過したら出し、下部の ONLINE STORE が見えたら消す
-      initFloatingCta({
-        showTrigger: '[data-floating-cta="show"]',
-        hideTrigger: '[data-floating-cta="hide"]',
-      });
+      // 一括で実行すると数十 ms メインスレッドが止まり、走行中の Hero の
+      // Ken Burns がその瞬間だけコマ落ちして引っかかる。1 フレーム 1 init に
+      // 分散する（順序は維持。ScrollTrigger は作成時に現在のスクロール位置で
+      // 評価されるので、数フレーム遅れても通過済みのトリガーは即発火する）
+      const steps = [
+        initHeroParallax,
+        // 文字分割で見出しの高さが動きうるので、[data-animate] の
+        // ScrollTrigger を生成する initScrollAnimations より先に呼ぶ
+        initLookHeadingReveal,
+        initCreditsReveal,
+        initScrollAnimations,
+        // フローティング CTA も ScrollTrigger 製なので、他と同じくロック解除後に作る。
+        // 上部の ONLINE STORE を通過したら出し、下部の ONLINE STORE が見えたら消す
+        () =>
+          initFloatingCta({
+            showTrigger: '[data-floating-cta="show"]',
+            hideTrigger: '[data-floating-cta="hide"]',
+          }),
+      ];
+      const runStep = (index) => {
+        if (index >= steps.length) return;
+        steps[index]();
+        requestAnimationFrame(() => runStep(index + 1));
+      };
+      runStep(0);
     },
     { once: true },
   );

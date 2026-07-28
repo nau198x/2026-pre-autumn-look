@@ -1,5 +1,6 @@
 import gsap from "gsap";
 
+import { HANDOVER_VISIBLE_SECONDS, startKenBurnsZoom } from "./slider.js";
 import { lockScroll, unlockScroll } from "./utils/scroll-lock.js";
 
 // 調整レバー
@@ -26,6 +27,10 @@ const SETTLE_ANGLE = 2; // 置かれるニュアンス: この分だけ深い角
 const SLIDE_X = 6;
 const SLIDE_Y = 6;
 const EXPAND_OVERLAP = 0.45; // 最後の 1 枚のフェード完了を待たずに拡大へ移る前倒し量
+// Ken Burns（slider.js）を拡大が終わるこの秒数だけ手前から先行開始する。
+// 拡大（power2.inOut）の減速テールとズームの等速が重なり、速度がゼロになる
+// 瞬間が消える。0.3 は拡大の減速がほぼ済んでいる位置。効きすぎたら縮める
+const KEN_BURNS_PRELUDE = 0.3;
 
 const fireComplete = () =>
   document.dispatchEvent(new Event("hero:animation-complete"));
@@ -75,7 +80,10 @@ export const initHero = () => {
         // 全 slide 可視のまま解除すると DOM 順で 6 枚目が最前面に描かれてしまう
         gsap.set(slides.slice(1), { opacity: 0 });
         gsap.set(slides, { clearProps: "zIndex" });
-        gsap.set(images, { clearProps: "opacity,transform" });
+        // 1 枚目（images[0]）は先行開始した Ken Burns の scale が走行中なので
+        // transform を消さない（rotation 等は 0 に着地済みで実害なし）
+        gsap.set(images.slice(1), { clearProps: "opacity,transform" });
+        gsap.set(images[0], { clearProps: "opacity" });
         gsap.set(swiperEl, { clearProps: "transform" });
         gsap.set(overlay, { clearProps: "opacity" });
         root.classList.add("is-hero-ready"); // CSS ガード解除（背景も既定色へ戻る）
@@ -142,6 +150,22 @@ export const initHero = () => {
       { rotation: 0, duration: EXPAND_DURATION, ease: "power2.inOut" },
       "<",
     );
+
+    // 1 枚目の Ken Burns を拡大の終わり際から独立 tween で先行開始する
+    // （タイムラインに乗せると onComplete がズーム完了まで遅れるため .call で切り離す。
+    // 0 尺なのでタイムラインの終端 = 拡大終了のまま変わらない）。
+    // 尺 = 前倒し 0.3 + オーバーレイ 0.6 + 引き継ぎ後に完全に隠れるまで 3.6。
+    // onComplete の clearProps はこの scale を対象外にしてある
+    tl.call(
+      () =>
+        startKenBurnsZoom(
+          images[0],
+          KEN_BURNS_PRELUDE + OVERLAY_DURATION + HANDOVER_VISIBLE_SECONDS,
+        ),
+      null,
+      `-=${KEN_BURNS_PRELUDE}`,
+    );
+
     tl.to(overlay, {
       opacity: 1,
       duration: OVERLAY_DURATION,
