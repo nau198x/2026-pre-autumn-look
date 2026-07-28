@@ -34,7 +34,12 @@ const ROTATIONS = [-4, 3, -5, 3.5, -2.5, 2]; // フェード順（6→1）の着
 // この振り幅では SP（390x844 実測余白 58.5px/側）の入場瞬間だけ数 px はみ出すが、
 // 画面端で刈られてよい合意済み（着地後は SP でも収まる）。
 // PC はレターボックス（720px 幅）内で入場最悪時 97px < 余白 108px で切れない
-const LANDING_X = [-6, 5, -4, 6, -5, 4];
+const LANDING_X = [-5, 4, -3, 5, -4, 3];
+// 着地 Y（yPercent）。高さも散らして自然な山にする。縦の余白は潤沢
+// （SP 126px / PC 135px に対し入場瞬間の最悪合算でも ~76 / ~90px）で切れの心配なし。
+// 符号は X の交互パターン（−+−+−+）と意図的に揃えない: 両軸が連動すると
+// 斜めジグザグの規則性が見えてしまうため、i=1→2 で同符号を挟むなど崩してある
+const LANDING_Y = [5, -4, -4.5, 4, -5, 4.5];
 const SETTLE_ANGLE = 2; // 置かれるニュアンス: この分だけ深い角度から入って落ち着く
 // 入場時の振り（%）。着地 X からさらに左下 / 右下へ離れた位置から差し込まれる
 // （LANDING_X からの相対値。移動量は常にこの値）。
@@ -187,6 +192,7 @@ export const initHero = () => {
     for (const [i, slideIndex] of fadeOrder.entries()) {
       const angle = ROTATIONS[i % ROTATIONS.length];
       const landingX = LANDING_X[i % LANDING_X.length];
+      const landingY = LANDING_Y[i % LANDING_Y.length];
       const entryAngle = angle + (angle >= 0 ? SETTLE_ANGLE : -SETTLE_ANGLE);
       const entryX = landingX + (angle < 0 ? -SLIDE_X : SLIDE_X);
       tl.set(slides[slideIndex], { zIndex: i + 1 }, 0);
@@ -208,12 +214,12 @@ export const initHero = () => {
         {
           rotation: entryAngle,
           xPercent: entryX,
-          yPercent: SLIDE_Y,
+          yPercent: landingY + SLIDE_Y, // 着地点よりさらに下から持ち上がる（X と同じ相対扱い）
         },
         {
           rotation: angle,
           xPercent: landingX,
-          yPercent: 0,
+          yPercent: landingY,
           duration: FADE_DURATION,
           ease: "power2.out",
         },
@@ -233,12 +239,13 @@ export const initHero = () => {
       },
       `-=${EXPAND_OVERLAP}`,
     );
-    // 回転と一緒に、散らした着地 X もセンターへ揃え直す（全画面で 1 枚に見せるため）
+    // 回転と一緒に、散らした着地 X / Y もセンターへ揃え直す（全画面で 1 枚に見せるため）
     tl.to(
       images,
       {
         rotation: 0,
         xPercent: 0,
+        yPercent: 0,
         duration: EXPAND_DURATION,
         ease: "power2.inOut",
       },
