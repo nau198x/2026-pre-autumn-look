@@ -17,11 +17,17 @@ const hidePreloader = (preloader) => {
 
 // ロゴが下から塗り上がるプリローダー。進捗は「画像の読み込み率」と
 // 「最低表示時間に対する経過率」の低い方を採り、LERP で滑らかに追従させる。
+// タイムアウトは「停滞ベース」: 進捗（画像 1 枚の完了・decode・フォント）が
+// stallTimeoutMs の間まったく無いときだけ強制オープンする。固定時間で切ると
+// 低速回線（Hero 6 枚 ≈ 1MB が間に合わない）でタイムアウトが通常経路になり、
+// 未ロードの真っ白な写真のままイントロが始まってしまう。
+// 「遅いが進んでいる」なら待ち続け、「壊れて止まった」ときだけ諦める
 export const runPreloader = ({
   heroImgSelector = "",
   fontSpec = "",
   minDisplayMs = 1500,
-  timeoutMs = 5000,
+  stallTimeoutMs = 10000,
+  maxWaitMs = 60000, // 暴走保険の絶対上限（進捗があり続けても超えたら開く）
   onComplete = () => {},
 } = {}) => {
   // リロード時のスクロール位置復元を無効化し、必ずページ先頭から始める。
@@ -54,7 +60,7 @@ export const runPreloader = ({
 
   // ダウンロード完了（complete）だけでなくデコード到達までを完了条件にする。
   // complete のみだと初回描画時にデコード待ちのカクつきが出るため。
-  // decode() がハングしても timeoutMs の安全網で必ず開く
+  // decode() がハングしても停滞タイムアウトの安全網で必ず開く
   let imagesDecoded = total === 0;
   Promise.allSettled(heroImgs.map((img) => img.decode())).then(() => {
     imagesDecoded = true;
@@ -117,9 +123,16 @@ export const runPreloader = ({
     requestAnimationFrame(fillStep);
   };
 
+  // 停滞検知: 進捗シグナルが変化した時刻を覚えておく。
+  // 粒度は「画像 1 枚の完了」なので、1 枚（最大 ~256KB）が stallTimeoutMs 内に
+  // 落ちない極端な回線（~200kbps 未満）では停滞と誤判定して開く。それは許容
+  let lastProgressAt = startTime;
+  let lastProgressSignature = "";
+
   const tick = () => {
     if (finishing) return;
-    const elapsed = performance.now() - startTime;
+    const now = performance.now();
+    const elapsed = now - startTime;
     const timeRatio = Math.min(elapsed / minDisplayMs, 1);
     // 画像進捗と時間進捗の低い方 = 早すぎず、実態より進みすぎない
     const targetPct = Math.min(imageRatio, timeRatio) * 100;
@@ -127,7 +140,14 @@ export const runPreloader = ({
     displayedPct += (targetPct - displayedPct) * LERP_ALPHA;
     setProgress(displayedPct);
 
-    const timedOut = elapsed >= timeoutMs;
+    const signature = `${imageRatio}|${imagesDecoded}|${fontsReady}`;
+    if (signature !== lastProgressSignature) {
+      lastProgressSignature = signature;
+      lastProgressAt = now;
+    }
+
+    const timedOut =
+      now - lastProgressAt >= stallTimeoutMs || elapsed >= maxWaitMs;
     const ready =
       timeRatio >= 1 && imageRatio >= 1 && imagesDecoded && fontsReady;
 

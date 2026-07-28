@@ -23,10 +23,10 @@ const OVERLAY_FADE_DURATION = 0.6;
 const OVERLAY_HOLD = 0.1;
 // 写真群の開始オフセット。オーバーレイを先に見せ、ひと呼吸置いてから写真に入る
 const PHOTOS_START = OVERLAY_FADE_DURATION + OVERLAY_HOLD;
-// プリローダーが来ない場合の保険。内訳は preloader の timeoutMs 8000
+// プリローダーが来ない場合の保険。内訳は preloader の maxWaitMs 60000
 // + ロゴフェード 600 + カバーフェード 800 + バッファ 2000。
-// main.js の timeoutMs を変えたらこの値も連動して見直すこと
-const LOADING_FALLBACK_MS = 11500;
+// main.js の maxWaitMs を変えたらこの値も連動して見直すこと
+const LOADING_FALLBACK_MS = 63400;
 const ROTATIONS = [-4, 3, -5, 3.5, -2.5, 2]; // フェード順（6→1）の着地角度。正負交互・最後は控えめ
 // 着地 X（xPercent）。センター一列ではなく左右交互に散らして重ねる（ポラロイド風）。
 // 符号は ROTATIONS と連動 = 入場方向と同じ側に着地して手前で止まる。

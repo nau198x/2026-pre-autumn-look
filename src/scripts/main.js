@@ -33,7 +33,12 @@ document.addEventListener("DOMContentLoaded", () => {
     heroImgSelector: ".hero__swiper img",
     fontSpec: ["1rem Marcellus"],
     minDisplayMs: 1000,
-    timeoutMs: 8000, // 変えたら hero.js の LOADING_FALLBACK_MS も見直す
+    // タイムアウトは停滞ベース: 進捗が止まって 10 秒で強制オープン、
+    // 進み続けても 60 秒で必ず開く。低速回線では進捗がある限り待つので
+    // 未ロードの真っ白なイントロにはならない。
+    // maxWaitMs を変えたら hero.js の LOADING_FALLBACK_MS も見直す
+    stallTimeoutMs: 10000,
+    maxWaitMs: 60000,
     onComplete: () => document.dispatchEvent(new Event("loading:complete")),
   });
 
