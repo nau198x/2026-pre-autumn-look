@@ -249,6 +249,8 @@ export const initCreditsReveal = () => {
 //   data-animate-fade-ease … 透明度だけ別のイージングにする（既定は移動と同じ）
 //   data-animate-fade-duration … 透明度だけ別の秒数にする（既定は移動と同じ）
 //   data-animate-skew     … 出発時の skewY 傾き deg。負値で逆向き
+//   data-animate-stagger  … 要素自身ではなく配下の .image-item を、この秒数ずつ
+//                           ずらして動かす（2 カラムの時間差用）
 export const initScrollAnimations = () => {
   if (prefersReducedMotion) return;
 
@@ -262,11 +264,25 @@ export const initScrollAnimations = () => {
       animateFadeEase,
       animateFadeDuration,
       animateSkew = 0,
+      animateStagger,
     } = el.dataset;
 
     const duration = Number(animateDuration);
     // 指定が無ければ移動と同尺に落ちる（既存要素の挙動は変わらない）
     const fadeDuration = Number(animateFadeDuration ?? animateDuration);
+
+    // stagger 指定があるときは、要素自身ではなく配下の画像 1 枚ずつを動かす。
+    // CSS の [data-animate] { opacity: 0 } が隠すのは要素自身なので、対象を移すぶん
+    // 自身の opacity は先に戻す。直後に子が 0 になり同期処理の中で完結するので
+    // 途中の描画は挟まらない（fromTo は既定で immediateRender）。
+    // 画像が見つからなければ従来どおり要素自身にフォールバックする
+    const staggerTargets = animateStagger
+      ? [...el.querySelectorAll(".image-item")]
+      : [];
+    const targets = staggerTargets.length ? staggerTargets : [el];
+    // stagger: 0 は「ずらさない」の正規値なので、単体要素でも分岐が要らない
+    const stagger = staggerTargets.length ? Number(animateStagger) : 0;
+    if (staggerTargets.length) gsap.set(el, { opacity: 1 });
 
     // 透明度と移動でイージング・秒数を分けられるよう tween を 2 本に割る。
     // GSAP は 1 tween 内のプロパティ個別イージング（{ value, ease }）に対応しておらず、
@@ -282,21 +298,22 @@ export const initScrollAnimations = () => {
     });
 
     tl.fromTo(
-      el,
+      targets,
       { opacity: 0 },
       {
         opacity: 1,
         duration: fadeDuration,
         ease: animateFadeEase ?? animateEase,
+        stagger,
       },
       0,
     );
     // skewY は移動と同じ tween に載せ、同じカーブで水平へ戻す。
     // 剪断が縦方向だけなので、rotate と違って横方向にはみ出さない
     tl.fromTo(
-      el,
+      targets,
       { y: Number(animateDistance), skewY: Number(animateSkew) },
-      { y: 0, skewY: 0, duration, ease: animateEase },
+      { y: 0, skewY: 0, duration, ease: animateEase, stagger },
       0,
     );
   }
