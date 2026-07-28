@@ -51,7 +51,8 @@ const CHAR_STAGGER = 0.02; // 文字と文字の間隔
 const RULE_AT = 0.25; // 番号のせり上がり途中で縦罫を差し込む位置（秒）
 const RULE_DURATION = 0.3;
 const TEXT_AT = 0.4; // 縦罫の直後に英字が追いかけ始める位置（秒）
-// リード文は罫線を引き終えてから。Y 移動は付けずフェードのみ
+// リード文は英字がせり上がり始めるのと同じ瞬間に重ねる（開始位置は TEXT_START + TEXT_AT）。
+// Y 移動は付けずフェードのみ
 const LEAD_DURATION = 1.2;
 const LEAD_EASE = "power1.out";
 // .look__lead と同じ開始位置。見出しはリード文より上にあるぶん必ず先に発火する
@@ -82,8 +83,8 @@ export const initLookHeadingReveal = () => {
     const textChars = splitCharsByWord(text);
     const lead = heading.closest(".look__header")?.querySelector(".look__lead");
 
-    // 英字の最終文字が着地する時刻。リード文の開始をここに揃え、罫線は
-    // これに LINE_RATIO を掛けた尺で少し先に引き終える。
+    // 英字の最終文字が着地する時刻。罫線はこれに LINE_RATIO を掛けた尺で
+    // 少し先に引き終える。
     // 09 SEPTEMBER COLLECTION（19 文字）で 0.5 + 0.4 + 0.8 + 0.02 × 18 = 2.06 秒
     const textEnd =
       TEXT_START +
@@ -138,13 +139,15 @@ export const initLookHeadingReveal = () => {
     );
 
     // リード文は見出しのタイムラインに繋ぐ。独立した ScrollTrigger のままだと
-    // 発火がスクロール位置で決まってしまい「罫線の後」を保証できない
+    // 発火がスクロール位置で決まってしまい、英字との重なりを保証できない。
+    // 開始は英字と同じ式（TEXT_START + TEXT_AT）で書く。英字側の定数を触れば
+    // リード文も自動で追従し、英字の文字数（textEnd）には依存しない
     if (lead) {
       tl.fromTo(
         lead,
         { opacity: 0 },
         { opacity: 1, duration: LEAD_DURATION, ease: LEAD_EASE },
-        textEnd,
+        TEXT_START + TEXT_AT,
       );
     }
   }
