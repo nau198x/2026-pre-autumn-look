@@ -7,6 +7,11 @@
   position: relative;
   z-index: 1; /* 背面の .hero(z-index: 0) より前面 */
 
+  /* BFC 化で子孫の margin を内側に閉じ込める。これが無いと footer / copyright の
+     bottom margin（collapse 後 90px）が外へ逃げ、白背景がコピーライト直下で
+     終わって黒 hero との層境界が画面中に露出する（実機で 1px の黒線に見えた） */
+  display: flow-root;
+
   /* 各セクションは背景色を持たないため、これが無いと背面の Hero が透ける */
   background-color: var(--color-bg);
 }
