@@ -1,0 +1,67 @@
+/* ----------------------------------------------------------------
+ Floating CTA（ALL ITEM）
+ 表示 / 非表示は floating-cta.js が .is-visible と inert をトグルするだけで、
+ 見た目とアニメーションはすべてここで持つ。
+ 非表示に display: none を使わないのは transition を効かせるため。
+ z-index はプリローダー(9999)より下・.contents(1)より上。
+----------------------------------------------------------------- */
+.floating-cta {
+  position: fixed;
+  left: 50%;
+  bottom: 1.25rem;
+  z-index: 100;
+  width: 88%;
+  max-width: 26rem;
+  opacity: 0;
+  pointer-events: none;
+
+  /* slide-up: 1.25rem 下から上がってくる */
+  transform: translate(-50%, 1.25rem);
+
+  @media (width >= 768px) {
+    width: auto;
+    max-width: none;
+  }
+
+  /* reduced-motion では transition を付けない = 表示/非表示は瞬時に切り替わる
+     （機能自体は残し、動きだけを無効化する） */
+  @media (prefers-reduced-motion: no-preference) {
+    transition:
+      opacity 0.4s var(--ease-out),
+      transform 0.4s var(--ease-out);
+  }
+
+  &.is-visible {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translate(-50%, 0);
+  }
+
+  .floating-cta__link {
+    display: block;
+    padding: 0.9375rem 0.3125rem;
+    border: 2px solid var(--color-rule);
+    border-radius: 3.125rem;
+    font-size: 1rem;
+    letter-spacing: 0.1rem;
+    text-align: center;
+    text-decoration: none;
+    color: var(--color-link);
+    background-color: var(--color-bg);
+
+    @media (width >= 768px) {
+      padding: 1rem 5rem;
+      transition:
+        border-radius 0.2s var(--ease-out),
+        color 0.2s var(--ease-out),
+        background-color 0.2s var(--ease-out);
+
+      /* PC ホバー: 色反転 + 角丸解除。SP はこのメディアクエリ外なのでホバー無し */
+      &:hover {
+        color: var(--color-bg);
+        background-color: var(--color-text);
+        border-radius: 0;
+      }
+    }
+  }
+}

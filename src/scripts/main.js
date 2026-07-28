@@ -10,6 +10,7 @@ import "../styles/look.css";
 import "../styles/staff-credit.css";
 import "../styles/catalog.css";
 import "../styles/ec.css";
+import "../styles/floating-cta.css";
 import "../styles/footer.css";
 
 import {
@@ -18,6 +19,7 @@ import {
   initLookHeadingReveal,
   initScrollAnimations,
 } from "./animations.js";
+import { initFloatingCta } from "./floating-cta.js";
 import { initHero } from "./hero.js";
 import { runPreloader } from "./preloader.js";
 import { initSlider } from "./slider.js";
@@ -50,6 +52,12 @@ document.addEventListener("DOMContentLoaded", () => {
       initLookHeadingReveal();
       initCreditsReveal();
       initScrollAnimations();
+      // フローティング CTA も ScrollTrigger 製なので、他と同じくロック解除後に作る。
+      // 上部の ONLINE STORE を通過したら出し、下部の ONLINE STORE が見えたら消す
+      initFloatingCta({
+        showTrigger: '[data-floating-cta="show"]',
+        hideTrigger: '[data-floating-cta="hide"]',
+      });
     },
     { once: true },
   );

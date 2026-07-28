@@ -146,7 +146,7 @@
         </div>
       </section>
 
-      <section class="ec" aria-label="オンラインストア" data-animate data-animate-distance="0">
+      <section class="ec" data-floating-cta="show" aria-label="オンラインストア" data-animate data-animate-distance="0">
         <a class="ec__link" href="https://www.junonline.jp/rope/" target="_blank" rel="noopener">ONLINE STORE</a>
       </section>
 
@@ -1384,7 +1384,7 @@
         </ul>
       </section>
 
-      <section class="ec" aria-label="オンラインストア" data-animate data-animate-distance="0">
+      <section class="ec" data-floating-cta="hide" aria-label="オンラインストア" data-animate data-animate-distance="0">
         <a class="ec__link" href="https://www.junonline.jp/rope/" target="_blank" rel="noopener">ONLINE STORE</a>
       </section>
 
@@ -1420,6 +1420,17 @@
 
         <p class="footer__copyright">&copy; JUN CO.,LTD. ALL RIGHTS RESERVED.</p>
       </footer>
+    </div>
+
+    <!-- 初期 inert は、JS の update() が走る前（プリローダー中）に Tab でフォーカスが入るのを防ぐため -->
+    <div class="floating-cta" inert>
+      <a
+        class="floating-cta__link"
+        href="https://www.junonline.jp/rope/product/?stock=1&amp;list_unit=fku&amp;cts=ct-textlink1_brd-GG_d-231129"
+        target="_blank"
+        rel="noopener"
+        >ALL ITEM</a
+      >
     </div>
 
     <script type="module" src="/src/scripts/main.js"></script>
