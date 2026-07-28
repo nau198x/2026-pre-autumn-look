@@ -2,6 +2,7 @@ import gsap from "gsap";
 
 import { HANDOVER_VISIBLE_SECONDS, startKenBurnsZoom } from "./slider.js";
 import { lockScroll, unlockScroll } from "./utils/scroll-lock.js";
+import { splitCharsByWord } from "./utils/split-text.js";
 
 // 調整レバー
 const START_DELAY = 0.3; // 白背景で見せる間
@@ -13,17 +14,32 @@ const FADE_DURATION = 1.2; // 1 枚あたりの移動・回転の時間
 // 前の 1 枚は不透明」= 半透明同士が重ならない。FADE_INTERVAL を縮めるときは要見直し
 const FADE_OPACITY_DURATION = 0.35;
 const EXPAND_DURATION = 1; // 7 割サイズ → 全画面への拡大
-const OVERLAY_DURATION = 0.6; // ロゴ・キャッチのフェードイン
+// キャッチ 1 文字の黒 → 白ブレンド時間。スイープ全体（duration + stagger の amount）は
+// 拡大の EXPAND_DURATION にちょうど納め、拡大の完了と同時に染め終わる
+const CHAR_COLOR_DURATION = 0.3;
+// 冒頭のオーバーレイ（黒ロゴ・黒キャッチ）のフェードイン時間
+const OVERLAY_FADE_DURATION = 0.6;
+// オーバーレイのフェード完了後、写真の重なりが始まるまでの間
+const OVERLAY_HOLD = 0.1;
+// 写真群の開始オフセット。オーバーレイを先に見せ、ひと呼吸置いてから写真に入る
+const PHOTOS_START = OVERLAY_FADE_DURATION + OVERLAY_HOLD;
 // プリローダーが来ない場合の保険。内訳は preloader の timeoutMs 8000
 // + ロゴフェード 600 + カバーフェード 800 + バッファ 2000。
 // main.js の timeoutMs を変えたらこの値も連動して見直すこと
 const LOADING_FALLBACK_MS = 11500;
 const ROTATIONS = [-4, 3, -5, 3.5, -2.5, 2]; // フェード順（6→1）の着地角度。正負交互・最後は控えめ
+// 着地 X（xPercent）。センター一列ではなく左右交互に散らして重ねる（ポラロイド風）。
+// 符号は ROTATIONS と連動 = 入場方向と同じ側に着地して手前で止まる。
+// 回転が最大の i=2（入場 −7°）には相対的に小さい値を充て、張り出しの偏りを抑える。
+// この振り幅では SP（390x844 実測余白 58.5px/側）の入場瞬間だけ数 px はみ出すが、
+// 画面端で刈られてよい合意済み（着地後は SP でも収まる）。
+// PC はレターボックス（720px 幅）内で入場最悪時 97px < 余白 108px で切れない
+const LANDING_X = [-6, 5, -4, 6, -5, 4];
 const SETTLE_ANGLE = 2; // 置かれるニュアンス: この分だけ深い角度から入って落ち着く
-// 入場時のオフセット（%）。左下 / 右下から交互に差し込まれる。
-// これ以上大きくすると .hero の overflow: hidden で角が切れる。余裕が最も薄いのは
-// 縦長ビューポート（SP 390x844 実測で残り 7px）で、6% がほぼ上限。
-// 内訳は scale(0.7) の余白 15% − 回転（最大 5°）の張り出し − このオフセット
+// 入場時の振り（%）。着地 X からさらに左下 / 右下へ離れた位置から差し込まれる
+// （LANDING_X からの相対値。移動量は常にこの値）。
+// これ以上大きくすると .hero の overflow: hidden で角が切れる。余裕の計算は
+// LANDING_X のコメントを参照（着地 X との合算で予算が決まる）
 const SLIDE_X = 6;
 const SLIDE_Y = 6;
 const EXPAND_OVERLAP = 0.45; // 最後の 1 枚のフェード完了を待たずに拡大へ移る前倒し量
@@ -49,9 +65,10 @@ const onLoadingComplete = (fn) => {
   setTimeout(once, LOADING_FALLBACK_MS);
 };
 
-// オープニング: 白背景 → 6 枚が 7 割サイズで 1 枚ずつ重なりながらフェード出現
-// （6 → 1 の逆順。1 枚目で締める）→ そのまま画面いっぱいへ拡大 → ロゴ・キャッチ表示。
-// 初期非表示は hero.css の .hero:not(.is-hero-ready) ガードが担う（FOUC 防止）。
+// オープニング: 白背景に黒のロゴ（センター）・黒のキャッチをフェードインで見せてから、
+// 6 枚が 7 割サイズで 1 枚ずつ重なりながらフェード出現（6 → 1 の逆順。1 枚目で締める）
+// → 画面いっぱいへ拡大しつつ、キャッチを左から 1 文字ずつ白へ・ロゴを右隅へ移す。
+// 写真の初期非表示は hero.css の .hero:not(.is-hero-ready) ガードが担う（FOUC 防止）。
 export const initHero = () => {
   const prefersReducedMotion = window.matchMedia(
     "(prefers-reduced-motion: reduce)",
@@ -68,11 +85,66 @@ export const initHero = () => {
   }
 
   const swiperEl = root.querySelector(".hero__swiper");
-  const overlay = root.querySelector(".hero__overlay");
   const slides = [...root.querySelectorAll(".swiper-slide")];
   const images = slides.map((slide) => slide.querySelector("img"));
+  // オーバーレイまわり。欠けている要素があればその演出だけスキップする（テンプレ耐性）
+  const overlay = root.querySelector(".hero__overlay");
+  const logoLink = root.querySelector("a.hero__logo");
+  const logoImg = logoLink?.querySelector("img");
+  const catchEl = root.querySelector(".hero__catch");
+  const catchLineEls = [
+    ".hero__catch-sub",
+    ".hero__catch-line--a",
+    ".hero__catch-line--b",
+  ]
+    .map((selector) => catchEl?.querySelector(selector))
+    .filter(Boolean);
 
   const play = () => {
+    // --- オーバーレイのイントロ状態（黒テキスト・ロゴセンター）を先に作る ---
+    // 分割で .word に aria-hidden が付くため、先に h1 へ読み上げ名を退避する
+    // （role を持たない素の span の aria-label は無視されるため h1 に付ける）
+    if (catchEl && !catchEl.hasAttribute("aria-label")) {
+      catchEl.setAttribute(
+        "aria-label",
+        catchEl.textContent.trim().replace(/\s+/g, " "),
+      );
+    }
+    const lineCharGroups = catchLineEls.map((el) => [...splitCharsByWord(el)]);
+    // PC はメイン 2 span が 1 行に連結される（hero.css で display: block）ため、
+    // 1 本の連続スイープに束ねる。SP は 3 行が縦積みなので行ごとに並走させ、
+    // 「全行が同時に左から染まる」を保つ
+    const isPcCatch = window.matchMedia("(width >= 768px)").matches;
+    const sweepGroups =
+      isPcCatch && lineCharGroups.length === 3
+        ? [lineCharGroups[0], [...lineCharGroups[1], ...lineCharGroups[2]]]
+        : lineCharGroups;
+    const allChars = lineCharGroups.flat();
+
+    // デザイントークンは実値へ解決してから GSAP に渡す
+    const rootStyle = getComputedStyle(document.documentElement);
+    const textColor = rootStyle.getPropertyValue("--color-text").trim();
+    const inverseColor = rootStyle.getPropertyValue("--color-inverse").trim();
+
+    // 白背景に載るイントロ中は黒テキスト・黒ロゴ。ロゴは X だけセンターへ寄せる
+    // （白 SVG は brightness(0) で黒になり、テキストの --color-text #000 と揃う）。
+    // CSS には最終状態（白・右隅）だけを持たせてあるので、
+    // JS 無効・reduced-motion ではこのイントロ状態は一切作られない
+    gsap.set(allChars, { color: textColor });
+    // オーバーレイ自体は冒頭でフェードインさせるため、いったん透明にしておく
+    if (overlay) gsap.set(overlay, { opacity: 0 });
+    if (logoImg) gsap.set(logoImg, { filter: "brightness(0)" });
+    if (logoLink) {
+      const heroRect = root.getBoundingClientRect();
+      const logoRect = logoLink.getBoundingClientRect();
+      gsap.set(logoLink, {
+        x:
+          heroRect.left +
+          heroRect.width / 2 -
+          (logoRect.left + logoRect.width / 2),
+      });
+    }
+
     const tl = gsap.timeline({
       delay: START_DELAY,
       onComplete: () => {
@@ -85,12 +157,27 @@ export const initHero = () => {
         gsap.set(images.slice(1), { clearProps: "opacity,transform" });
         gsap.set(images[0], { clearProps: "opacity" });
         gsap.set(swiperEl, { clearProps: "transform" });
-        gsap.set(overlay, { clearProps: "opacity" });
+        // オーバーレイのイントロ用 inline 値を CSS の完成状態（白・右隅）へ解く。
+        // 各 tween は最終値 = CSS 値で終わっているので見た目は変わらない
+        if (allChars.length) gsap.set(allChars, { clearProps: "color" });
+        if (logoLink) gsap.set(logoLink, { clearProps: "transform" });
+        if (logoImg) gsap.set(logoImg, { clearProps: "filter" });
+        if (overlay) gsap.set(overlay, { clearProps: "opacity" });
         root.classList.add("is-hero-ready"); // CSS ガード解除（背景も既定色へ戻る）
         unlockScroll();
         fireComplete();
       },
     });
+
+    // 冒頭: オーバーレイ（黒ロゴ・黒キャッチ）をフェードインで見せる。
+    // 白背景の間（START_DELAY）は透明のまま、1 枚目の写真の入場と同時に現れ始める
+    if (overlay) {
+      tl.to(
+        overlay,
+        { opacity: 1, duration: OVERLAY_FADE_DURATION, ease: "power1.out" },
+        0,
+      );
+    }
 
     // 出現順（6 → 1 の逆順）に z-index を積み、常に新しい画像が上に乗るようにする。
     // 各写真は着地角度よりやや深い角度から、かつ左下 / 右下から差し込まれ、
@@ -99,8 +186,9 @@ export const initHero = () => {
     const fadeOrder = [...slides.keys()].reverse();
     for (const [i, slideIndex] of fadeOrder.entries()) {
       const angle = ROTATIONS[i % ROTATIONS.length];
+      const landingX = LANDING_X[i % LANDING_X.length];
       const entryAngle = angle + (angle >= 0 ? SETTLE_ANGLE : -SETTLE_ANGLE);
-      const entryX = angle < 0 ? -SLIDE_X : SLIDE_X;
+      const entryX = landingX + (angle < 0 ? -SLIDE_X : SLIDE_X);
       tl.set(slides[slideIndex], { zIndex: i + 1 }, 0);
 
       // opacity と移動を別 tween に分ける（同時開始・長さ違い）。
@@ -113,7 +201,7 @@ export const initHero = () => {
           duration: FADE_OPACITY_DURATION,
           ease: "none", // フェードは等速。移動・回転側にだけイージングを効かせる
         },
-        i * FADE_INTERVAL,
+        PHOTOS_START + i * FADE_INTERVAL,
       );
       tl.fromTo(
         images[slideIndex],
@@ -124,17 +212,17 @@ export const initHero = () => {
         },
         {
           rotation: angle,
-          xPercent: 0,
+          xPercent: landingX,
           yPercent: 0,
           duration: FADE_DURATION,
           ease: "power2.out",
         },
-        i * FADE_INTERVAL,
+        PHOTOS_START + i * FADE_INTERVAL,
       );
     }
 
     // 1 枚目のフェードが載り切る少し前から全画面へ拡大（EXPAND_OVERLAP 分の前倒し）。
-    // 並行して全枚の回転を正体に戻す → 仕上げにロゴ・キャッチ。
+    // 並行して全枚の回転を正体に戻す。
     // 1 枚目の rotation は着地 tween と重なるが、後着の戻し tween が勝つので滑らかに繋がる
     tl.to(
       swiperEl,
@@ -145,32 +233,70 @@ export const initHero = () => {
       },
       `-=${EXPAND_OVERLAP}`,
     );
+    // 回転と一緒に、散らした着地 X もセンターへ揃え直す（全画面で 1 枚に見せるため）
     tl.to(
       images,
-      { rotation: 0, duration: EXPAND_DURATION, ease: "power2.inOut" },
+      {
+        rotation: 0,
+        xPercent: 0,
+        duration: EXPAND_DURATION,
+        ease: "power2.inOut",
+      },
       "<",
     );
+
+    // 拡大に合わせてキャッチを左から 1 文字ずつ白へ染める。
+    // stagger: { amount } なので行の文字数に関係なく duration + amount =
+    // EXPAND_DURATION となり、全行が拡大の完了と同時に染め終わる。
+    // 白化した文字が白地に載る瞬間は無い: 写真は拡大開始 ~0.2 秒でテキスト帯を
+    // 覆うのに対し、先頭の文字が白になり切るのは CHAR_COLOR_DURATION 後
+    for (const chars of sweepGroups) {
+      tl.to(
+        chars,
+        {
+          color: inverseColor,
+          duration: CHAR_COLOR_DURATION,
+          ease: "none",
+          stagger: { amount: EXPAND_DURATION - CHAR_COLOR_DURATION },
+        },
+        "<",
+      );
+    }
+    // ロゴはセンターから CSS の定位置（右隅）へ、色も黒 → 白へ。
+    // どちらも拡大と同尺・同イージングにして 3 つの動きを一体化させる
+    if (logoLink) {
+      tl.to(
+        logoLink,
+        { x: 0, duration: EXPAND_DURATION, ease: "power2.inOut" },
+        "<",
+      );
+    }
+    if (logoImg) {
+      tl.to(
+        logoImg,
+        {
+          filter: "brightness(1)",
+          duration: EXPAND_DURATION,
+          ease: "power2.inOut",
+        },
+        "<",
+      );
+    }
 
     // 1 枚目の Ken Burns を拡大の終わり際から独立 tween で先行開始する
     // （タイムラインに乗せると onComplete がズーム完了まで遅れるため .call で切り離す。
     // 0 尺なのでタイムラインの終端 = 拡大終了のまま変わらない）。
-    // 尺 = 前倒し 0.3 + オーバーレイ 0.6 + 引き継ぎ後に完全に隠れるまで 3.6。
+    // 尺 = 前倒し 0.3 + 引き継ぎ後に完全に隠れるまで 3.6。
     // onComplete の clearProps はこの scale を対象外にしてある
     tl.call(
       () =>
         startKenBurnsZoom(
           images[0],
-          KEN_BURNS_PRELUDE + OVERLAY_DURATION + HANDOVER_VISIBLE_SECONDS,
+          KEN_BURNS_PRELUDE + HANDOVER_VISIBLE_SECONDS,
         ),
       null,
       `-=${KEN_BURNS_PRELUDE}`,
     );
-
-    tl.to(overlay, {
-      opacity: 1,
-      duration: OVERLAY_DURATION,
-      ease: "power1.out",
-    });
   };
 
   // 画像のロード待ちはプリローダー（preloader.js）の責務。ここはその完了を

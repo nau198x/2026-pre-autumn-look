@@ -156,9 +156,8 @@
         opacity: 0;
       }
 
-      .hero__overlay {
-        opacity: 0;
-      }
+      /* .hero__overlay はイントロ中も表示する（黒テキスト・ロゴセンターの
+         イントロ専用状態は hero.js が GSAP で作り、拡大に合わせて解いていく） */
     }
   }
 }
