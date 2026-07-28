@@ -270,6 +270,11 @@
     }
   }
 
+  /* リスト上辺。不透明度は GSAP が .credits に載せるカスタムプロパティで駆動する
+     （擬似要素は DOM ノードが無く GSAP のターゲットにできないため）。
+     既定値 1 なので JS 無効・reduced-motion では最初から表示される。
+     行側と変数名を分けてあるのはカスタムプロパティが継承するため
+     （同名だと .credits__item が親の値を拾ってしまう） */
   .credits::before {
     content: "";
     position: absolute;
@@ -278,12 +283,14 @@
     width: 100%;
     height: 1px;
     background-color: var(--color-rule);
+    opacity: var(--credits-line-opacity, 1);
   }
 
   .credits__item {
     position: relative;
   }
 
+  /* 各行の下辺。上辺と同じくカスタムプロパティで不透明度を駆動する（行ごとに独立） */
   .credits__item::after {
     content: "";
     position: absolute;
@@ -293,6 +300,7 @@
     width: 100%;
     height: 1px;
     background-color: var(--color-rule-light);
+    opacity: var(--credits-item-line-opacity, 1);
   }
 
   .credits__item:last-child::after {

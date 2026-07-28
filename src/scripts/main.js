@@ -13,6 +13,7 @@ import "../styles/ec.css";
 import "../styles/footer.css";
 
 import {
+  initCreditsReveal,
   initHeroParallax,
   initLookHeadingReveal,
   initScrollAnimations,
@@ -47,6 +48,7 @@ document.addEventListener("DOMContentLoaded", () => {
       // 文字分割で見出しの高さが動きうるので、[data-animate] の
       // ScrollTrigger を生成する initScrollAnimations より先に呼ぶ
       initLookHeadingReveal();
+      initCreditsReveal();
       initScrollAnimations();
     },
     { once: true },

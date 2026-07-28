@@ -112,6 +112,20 @@ br.pc {
   white-space: nowrap;
 }
 
+/* 1 文字ではなくテキスト 1 塊をせり上がらせる版（utils/split-text.js の wrapLine）。
+   内側を block にしてあるのは、包んだ元要素の text-align（中央・右寄せ）を
+   そのまま効かせるため。line-height を親に揃える理由は .char-mask と同じ */
+.line-mask {
+  display: block;
+  overflow: hidden;
+  line-height: inherit;
+}
+
+.line {
+  display: block;
+  line-height: inherit;
+}
+
 /* ----------------------------------------------------------------
  Scroll lock（utils/scroll-lock.js とワンセット）
  Hero イントロ等のオーバーレイ演出中に背面スクロールを止める

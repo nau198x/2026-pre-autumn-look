@@ -1,7 +1,7 @@
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
-import { splitCharsByWord } from "./utils/split-text.js";
+import { splitCharsByWord, wrapLine } from "./utils/split-text.js";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -145,6 +145,92 @@ export const initLookHeadingReveal = () => {
         { opacity: 0 },
         { opacity: 1, duration: LEAD_DURATION, ease: LEAD_EASE },
         textEnd,
+      );
+    }
+  }
+};
+
+// 商品クレジット（NAME / PRICE / CLICK の罫線リスト）のリビール。
+// 罫線 1 本ごとに 1 ステップ進め、その直下の行の文字を同じステップに載せる:
+//   上罫線 + 1 行目 → 中間罫線 + 2 行目 → … → 最後の下罫線
+// N 行のリストには罫線が N+1 本ある（上辺 1 本 + 各行の下辺 N 本）。
+// 罫線は擬似要素なので GSAP のターゲットにできず、.look__heading と同じく
+// カスタムプロパティ（look.css の opacity）経由で駆動する。
+// 調整レバー
+const CREDIT_TEXT_DURATION = 0.6; // セルが下からせり上がる時間（移動量は行の高さ 18px）
+const CREDIT_CELL_STAGGER = 0.15; // 商品名 → 価格 → CLICK の間隔
+// 罫線 1 本ぶんのステップ間隔。罫線の尺（下の逆算値）に対して小さすぎると
+// 1px の薄い線では差が読み取れず「全部同時」に見えるので、尺の 1/4 程度は空ける
+const CREDIT_ROW_STAGGER = 0.2;
+const CREDIT_EASE = "power2.out";
+const CREDITS_START = "top 85%"; // 移行前の data-animate と同じ発火位置
+
+export const initCreditsReveal = () => {
+  if (prefersReducedMotion) return;
+
+  for (const list of document.querySelectorAll(".credits")) {
+    const rows = [...list.querySelectorAll(".credits__item")];
+    // 商品名 / 価格 / CLICK をそれぞれマスクで包む。querySelectorAll は
+    // セレクタの並び順ではなく DOM 順で返すので、行内は必ず左からの順になる
+    const rowLines = rows.map((row) =>
+      [
+        ...row.querySelectorAll(
+          ".credits__name, .credits__price, .credits__action",
+        ),
+      ].map(wrapLine),
+    );
+
+    gsap.set(list, { "--credits-line-opacity": 0 });
+    gsap.set(rows, { "--credits-item-line-opacity": 0 });
+    gsap.set(rowLines.flat(), { yPercent: 100 });
+
+    const tl = gsap.timeline({
+      scrollTrigger: { trigger: list, start: CREDITS_START, once: true },
+    });
+
+    // 罫線の尺は固定値ではなく「同じステップで動く行の最後のセルが着地する時刻」から
+    // 逆算する。セルは CREDIT_CELL_STAGGER ずつ遅れて始まるので、その遅れぶん
+    // 罫線も長くする（CREDIT_CELL_STAGGER を変えても出切りが揃ったままになる）
+    const lineDurationFor = (lines) =>
+      CREDIT_TEXT_DURATION +
+      CREDIT_CELL_STAGGER * Math.max(0, (lines?.length ?? 1) - 1);
+
+    // 上罫線は 0 番目のステップ。同じステップで 1 行目の文字が出る
+    tl.to(
+      list,
+      {
+        "--credits-line-opacity": 1,
+        duration: lineDurationFor(rowLines[0]),
+        ease: CREDIT_EASE,
+      },
+      0,
+    );
+
+    for (const [i, row] of rows.entries()) {
+      const at = i * CREDIT_ROW_STAGGER;
+
+      // 行の文字は「その行の上にある罫線」と同じステップに載せる
+      tl.to(
+        rowLines[i],
+        {
+          yPercent: 0,
+          duration: CREDIT_TEXT_DURATION,
+          ease: CREDIT_EASE,
+          stagger: CREDIT_CELL_STAGGER,
+        },
+        at,
+      );
+
+      // 行の下罫線は 1 ステップ後。次の行にとっては「上の罫線」にあたるので、
+      // 尺は次の行のセルから逆算する（最終行の下には文字が無いので自分の行を流用）
+      tl.to(
+        row,
+        {
+          "--credits-item-line-opacity": 1,
+          duration: lineDurationFor(rowLines[i + 1] ?? rowLines[i]),
+          ease: CREDIT_EASE,
+        },
+        at + CREDIT_ROW_STAGGER,
       );
     }
   }

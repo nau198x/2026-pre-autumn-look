@@ -31,6 +31,23 @@ export const splitChars = (el) => {
   el.dataset.split = "true";
 };
 
+// テキストを 1 塊のままマスク 2 重にする（元の要素がマスク、中に実体を作る）。
+// 1 文字分割と違い aria-hidden を付けないので、読み上げは分割前と変わらない。
+// 返り値の .line を yPercent: 100 → 0 すると「下からせり上がる」表現になる
+export const wrapLine = (el) => {
+  if (el.dataset.lineWrap === "true") return el.querySelector(".line");
+
+  const inner = document.createElement("span");
+  inner.className = "line";
+  inner.textContent = el.textContent;
+
+  el.textContent = "";
+  el.classList.add("line-mask");
+  el.appendChild(inner);
+  el.dataset.lineWrap = "true";
+  return inner;
+};
+
 // 単語ごとに .word で包んでから中を 1 文字分割する。
 // inline-block の文字 span は単語の途中でも折り返すため、複数単語の英文見出しでは必須。
 // 分割後の .char を NodeList で返すので、そのまま GSAP のターゲットにできる
