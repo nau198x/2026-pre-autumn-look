@@ -35,6 +35,16 @@ document.addEventListener("DOMContentLoaded", () => {
     // （進捗表示と停滞検知は上の 6 枚のまま）。残り 5 枚のロードは
     // slider.js が自動送りの開始前に待つので、切り替えで白飛びしない
     requiredImgSelector: ".hero__swiper .swiper-slide:first-child img",
+    // ロゴ（ROPÉ）を 1 文字ずつ消すための分割。各要素は [左, 右]（ロゴ幅に対する %）。
+    // ロゴを差し替えたら測り直すこと: SVG を開いて各 <path> の getBBox() を取り、
+    // 隣り合う文字の「隙間の中間」で切ると 1 文字も欠けない
+    //（この 4 値は R 0〜23.04% / O 27.16〜49.17% / P 53.93〜75.20% / É 79.58〜100% から算出）
+    logoBands: [
+      [0, 25.1],
+      [25.1, 51.55],
+      [51.55, 77.39],
+      [77.39, 100],
+    ],
     fontSpec: ["1rem Marcellus"],
     minDisplayMs: 1000,
     // タイムアウトは停滞ベース: 進捗が止まって 10 秒で強制オープン、

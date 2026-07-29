@@ -26,9 +26,9 @@ const CHAR_REVEAL_DURATION = 0.7; // 1 文字がマスクからせり上がる�
 const TEXT_REVEAL_DURATION = 1;
 const LOGO_FADE_DURATION = 0.8;
 // プリローダーが来ない場合の保険。内訳は preloader の maxWaitMs 60000
-// + ロゴフェード 600 + カバーフェード 800 + バッファ 2000。
+// + ロゴが 1 文字ずつ消える 900 と余韻 500 + カバー退場 800 + バッファ 2000。
 // main.js の maxWaitMs を変えたらこの値も連動して見直すこと
-const LOADING_FALLBACK_MS = 63400;
+const LOADING_FALLBACK_MS = 64200;
 
 const fireComplete = () =>
   document.dispatchEvent(new Event("hero:animation-complete"));

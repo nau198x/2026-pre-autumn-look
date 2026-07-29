@@ -2,7 +2,10 @@ import { lockScroll, unlockScroll } from "./utils/scroll-lock.js";
 
 const LERP_ALPHA = 0.15; // 表示 % が目標に追いつく速さ（0-1、大きいほど速い）
 const FINAL_FILL_MS = 200; // 完了時に残りを一気に埋める時間
-const LOGO_FADE_MS = 600; // ロゴフェードアウト時間
+const LOGO_LETTER_FADE_MS = 600; // 1 文字あたりの退場時間（preloader.css と一致させること）
+const LOGO_LETTER_STAGGER_MS = 100; // 文字と文字の間隔（左から順に消える）
+// ロゴが消えてからカバーを動かすまでの余韻。この間は「ロゴの無い白いパネル」だけが残る
+const LOGO_HOLD_MS = 500;
 
 const hidePreloader = (preloader) => {
   preloader.classList.add("is-hidden");
@@ -28,10 +31,13 @@ const hidePreloader = (preloader) => {
 // 進捗表示と停滞検知は heroImgSelector（全枚）のまま残すのが要点で、
 // 待機対象そのものを 1 枚に減らすと進捗が 0/1 の二値になり、
 // ロゴの塗りが 0% で固まってから最後に飛ぶ（低速回線ほど顕著）。
-// 未指定なら heroImgSelector と同じ集合＝従来どおりの挙動
+// 未指定なら heroImgSelector と同じ集合＝従来どおりの挙動。
+// logoBands はロゴを 1 文字ずつ消すための分割で、各要素は [左, 右]（ロゴ幅に対する %）。
+// ブランド固有のデータなので呼び出し側から渡す。未指定ならロゴ 1 枚でフェードする
 export const runPreloader = ({
   heroImgSelector = "",
   requiredImgSelector = "",
+  logoBands = [],
   fontSpec = "",
   minDisplayMs = 1500,
   stallTimeoutMs = 10000,
@@ -55,6 +61,26 @@ export const runPreloader = ({
   }
 
   lockScroll();
+
+  // ロゴを 1 文字ずつ消す構成。フルサイズのロゴを文字数ぶん重ね、
+  // clip-path で各文字の帯だけを見せる（各コピーは元と同寸なので
+  // 塗り上げのグラデーションは分割前と同じに見える）。
+  // transition-delay で左から順に消し、親は器に徹する（--split）
+  const logo = preloader.querySelector(".preloader__logo");
+  if (logo && logoBands.length) {
+    logo.classList.add("preloader__logo--split");
+    for (const [i, [left, right]] of logoBands.entries()) {
+      const letter = document.createElement("span");
+      letter.className = "preloader__logo-letter";
+      letter.style.clipPath = `inset(0 ${100 - right}% 0 ${left}%)`;
+      letter.style.transitionDelay = `${i * LOGO_LETTER_STAGGER_MS}ms`;
+      logo.appendChild(letter);
+    }
+  }
+  // 最後の 1 文字が消え終わるまでの合計。分割しない場合は stagger が乗らない
+  const logoExitMs =
+    LOGO_LETTER_FADE_MS +
+    LOGO_LETTER_STAGGER_MS * Math.max(0, logoBands.length - 1);
 
   const heroImgs = heroImgSelector
     ? [...document.querySelectorAll(heroImgSelector)]
@@ -138,7 +164,7 @@ export const runPreloader = ({
         unlockScroll();
         onComplete();
         hidePreloader(preloader);
-      }, LOGO_FADE_MS);
+      }, logoExitMs + LOGO_HOLD_MS);
     };
     requestAnimationFrame(fillStep);
   };
