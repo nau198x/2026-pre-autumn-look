@@ -21,7 +21,9 @@
 
   /* ロゴ本体は空 div。形は mask で抜き、塗りは background のグラデで表す */
   .preloader__logo {
-    width: 6rem;
+    /* Hero のロゴと同寸にするための共通トークン（global.css）。
+       SP / PC の切り替えもトークン側が持つので、ここに @media は要らない */
+    width: var(--logo-width);
     aspect-ratio: 1024 / 337.427; /* rope_white_logo.svg の viewBox 比 */
 
     /* 塗り上げの見た目。1 文字ずつ消す構成（preloader.js の logoBands）では、
@@ -99,12 +101,6 @@
       .preloader__logo-letter {
         transform: none;
       }
-    }
-  }
-
-  @media (width >= 768px) {
-    .preloader__logo {
-      width: 8rem;
     }
   }
 }
