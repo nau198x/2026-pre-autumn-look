@@ -1,8 +1,8 @@
 /* ----------------------------------------------------------------
  Preloader
  ロゴが下から塗り上がるローディング画面（src/scripts/preloader.js）。
- 背景は Hero イントロの開始色と同じ白なので、カバーが消える瞬間に
- 継ぎ目が出ない。スクロールロックは body.is-scroll-locked（global.css）側。
+ 解除ではカバーが下へ退き、その下から完成した Hero の写真が上から順に現れる
+ （写真側はフェードさせない）。スクロールロックは body.is-scroll-locked（global.css）側。
 ----------------------------------------------------------------- */
 .preloader {
   position: fixed;
@@ -12,7 +12,12 @@
   align-items: center;
   justify-content: center;
   background-color: var(--color-bg);
-  transition: opacity 0.8s ease-out;
+
+  /* 解除は下方向へスライドさせて退場し、Hero を上から順に現す（逆 reveal）。
+     ロゴは先に消えていて単色パネルなので、clip でマスクするのと見た目は同じ。
+     尺 0.8s は hero.js の COVER_EXIT_DURATION と一致させること
+     （reveal・ロゴ・Ken Burns がこの時刻を基準に揃えてある） */
+  transition: transform 0.8s var(--ease-out);
 
   /* ロゴ本体は空 div。形は mask で抜き、塗りは background のグラデで表す */
   .preloader__logo {
@@ -39,8 +44,19 @@
   }
 
   &.is-hidden {
-    opacity: 0;
+    transform: translateY(100%);
     pointer-events: none;
+  }
+
+  /* 全画面を動かす演出は reduced-motion では避け、短いフェードに落とす。
+     transitionend で DOM から取り除く仕組みは opacity 側でも成立する */
+  @media (prefers-reduced-motion: reduce) {
+    transition: opacity 0.4s var(--ease-out);
+
+    &.is-hidden {
+      transform: none;
+      opacity: 0;
+    }
   }
 
   @media (width >= 768px) {

@@ -143,11 +143,9 @@
      slide 自体の opacity は Swiper が inline で管理するため触らず、img 側を隠す */
   @media (scripting: enabled) and (prefers-reduced-motion: no-preference) {
     &:not(.is-hero-ready) {
-      background-color: var(--color-bg); /* 白背景から始める */
-
-      .swiper-slide img {
-        opacity: 0;
-      }
+      /* 写真が読めなかったときに、カバーと同じ白が見えるようにするための保険。
+         通常は写真（フェードさせず最初から不透明）が覆うので見えない */
+      background-color: var(--color-bg);
 
       /* .hero__overlay はイントロ中も表示する（黒テキスト・ロゴセンターの
          イントロ専用状態は hero.js が GSAP で作り、拡大に合わせて解いていく） */

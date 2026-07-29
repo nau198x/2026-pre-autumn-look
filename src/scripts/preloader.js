@@ -6,13 +6,15 @@ const LOGO_FADE_MS = 600; // ロゴフェードアウト時間
 
 const hidePreloader = (preloader) => {
   preloader.classList.add("is-hidden");
-  preloader.addEventListener(
-    "transitionend",
-    () => {
-      preloader.remove();
-    },
-    { once: true },
-  );
+  // transitionend はバブルするので、子（.preloader__logo のフェード）の完了を
+  // 拾わないよう自分自身のイベントに限定する。ロゴのフェード完了と
+  // この登録はほぼ同時刻なので、絞らないと早期に remove されうる
+  const onEnd = (e) => {
+    if (e.target !== preloader) return;
+    preloader.removeEventListener("transitionend", onEnd);
+    preloader.remove();
+  };
+  preloader.addEventListener("transitionend", onEnd);
 };
 
 // ロゴが下から塗り上がるプリローダー。進捗は「画像の読み込み率」と
