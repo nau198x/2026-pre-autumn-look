@@ -31,6 +31,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
   runPreloader({
     heroImgSelector: ".hero__swiper img",
+    // イントロで見せるのは 1 枚目だけなので、開く判定はこの 1 枚に絞る
+    // （進捗表示と停滞検知は上の 6 枚のまま）。残り 5 枚のロードは
+    // slider.js が自動送りの開始前に待つので、切り替えで白飛びしない
+    requiredImgSelector: ".hero__swiper .swiper-slide:first-child img",
     fontSpec: ["1rem Marcellus"],
     minDisplayMs: 1000,
     // タイムアウトは停滞ベース: 進捗が止まって 10 秒で強制オープン、

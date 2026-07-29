@@ -22,8 +22,14 @@ const hidePreloader = (preloader) => {
 // 低速回線（Hero 6 枚 ≈ 1MB が間に合わない）でタイムアウトが通常経路になり、
 // 未ロードの真っ白な写真のままイントロが始まってしまう。
 // 「遅いが進んでいる」なら待ち続け、「壊れて止まった」ときだけ諦める
+// requiredImgSelector を指定すると「開く判定」だけをその部分集合に絞れる。
+// 進捗表示と停滞検知は heroImgSelector（全枚）のまま残すのが要点で、
+// 待機対象そのものを 1 枚に減らすと進捗が 0/1 の二値になり、
+// ロゴの塗りが 0% で固まってから最後に飛ぶ（低速回線ほど顕著）。
+// 未指定なら heroImgSelector と同じ集合＝従来どおりの挙動
 export const runPreloader = ({
   heroImgSelector = "",
+  requiredImgSelector = "",
   fontSpec = "",
   minDisplayMs = 1500,
   stallTimeoutMs = 10000,
@@ -52,7 +58,13 @@ export const runPreloader = ({
     ? [...document.querySelectorAll(heroImgSelector)]
     : [];
   const total = heroImgs.length;
+  // 開く判定に使う必須集合。未指定なら全枚（＝従来どおり）
+  const requiredImgs = requiredImgSelector
+    ? [...document.querySelectorAll(requiredImgSelector)]
+    : heroImgs;
+  const requiredTotal = requiredImgs.length;
   let imageRatio = total === 0 ? 1 : 0;
+  let requiredRatio = requiredTotal === 0 ? 1 : 0;
   let displayedPct = 0;
   let finishing = false;
   let fontsReady = false;
@@ -61,9 +73,9 @@ export const runPreloader = ({
   // ダウンロード完了（complete）だけでなくデコード到達までを完了条件にする。
   // complete のみだと初回描画時にデコード待ちのカクつきが出るため。
   // decode() がハングしても停滞タイムアウトの安全網で必ず開く
-  let imagesDecoded = total === 0;
-  Promise.allSettled(heroImgs.map((img) => img.decode())).then(() => {
-    imagesDecoded = true;
+  let requiredDecoded = requiredTotal === 0;
+  Promise.allSettled(requiredImgs.map((img) => img.decode())).then(() => {
+    requiredDecoded = true;
   });
 
   // フォント待機（FOUT 対策）。"1rem Marcellus" 形式の文字列 or その配列
@@ -84,11 +96,17 @@ export const runPreloader = ({
   };
 
   const recomputeImageRatio = () => {
-    if (total === 0) return;
-    imageRatio = heroImgs.filter((img) => img.complete).length / total;
+    if (total > 0) {
+      imageRatio = heroImgs.filter((img) => img.complete).length / total;
+    }
+    if (requiredTotal > 0) {
+      requiredRatio =
+        requiredImgs.filter((img) => img.complete).length / requiredTotal;
+    }
   };
 
-  for (const img of heroImgs) {
+  // 必須集合が heroImgs の外にある構成でも取りこぼさないよう、両方に張る
+  for (const img of new Set([...heroImgs, ...requiredImgs])) {
     if (!img.complete) {
       img.addEventListener("load", recomputeImageRatio, { once: true });
       img.addEventListener("error", recomputeImageRatio, { once: true }); // 失敗も完了扱い
@@ -140,7 +158,7 @@ export const runPreloader = ({
     displayedPct += (targetPct - displayedPct) * LERP_ALPHA;
     setProgress(displayedPct);
 
-    const signature = `${imageRatio}|${imagesDecoded}|${fontsReady}`;
+    const signature = `${imageRatio}|${requiredRatio}|${requiredDecoded}|${fontsReady}`;
     if (signature !== lastProgressSignature) {
       lastProgressSignature = signature;
       lastProgressAt = now;
@@ -149,7 +167,7 @@ export const runPreloader = ({
     const timedOut =
       now - lastProgressAt >= stallTimeoutMs || elapsed >= maxWaitMs;
     const ready =
-      timeRatio >= 1 && imageRatio >= 1 && imagesDecoded && fontsReady;
+      timeRatio >= 1 && requiredRatio >= 1 && requiredDecoded && fontsReady;
 
     if (timedOut || ready) {
       finish();
