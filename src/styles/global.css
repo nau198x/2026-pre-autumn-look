@@ -15,10 +15,14 @@
 
   /* typography（ROPÉ: 本文の欧文も Marcellus で揃える方針。和文は明朝フォールバック） */
   --font-primary:
-    "Marcellus", "游明朝", "YuMincho", "Hiragino Mincho ProN", serif; /* 本文: Marcellus（欧文）+ 和文明朝フォールバック */
+    "Marcellus", "游明朝", "YuMincho", "Hiragino Mincho ProN W3",
+    "ヒラギノ明朝 ProN W3", "Hiragino Mincho ProN", "HG明朝E", "ＭＳ Ｐ明朝",
+    "ＭＳ 明朝", serif; /* 本文: Marcellus（欧文）+ 和文明朝フォールバック */
 
   --font-display:
-    "Marcellus", "游明朝", "YuMincho", "Hiragino Mincho ProN", serif; /* 見出し・数字・価格: Marcellus + 和文明朝フォールバック */
+    "Marcellus", "游明朝", "YuMincho", "Hiragino Mincho ProN W3",
+    "ヒラギノ明朝 ProN W3", "Hiragino Mincho ProN", "HG明朝E", "ＭＳ Ｐ明朝",
+    "ＭＳ 明朝", serif; /* 見出し・数字・価格: Marcellus + 和文明朝フォールバック */
 
   /* spacing */
   --spacing-xs: 0.5rem;
