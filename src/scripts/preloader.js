@@ -2,17 +2,22 @@ import { lockScroll, unlockScroll } from "./utils/scroll-lock.js";
 
 const LERP_ALPHA = 0.15; // 表示 % が目標に追いつく速さ（0-1、大きいほど速い）
 const FINAL_FILL_MS = 200; // 完了時に残りを一気に埋める時間
-const LOGO_FADE_MS = 600; // ロゴフェードアウト時間
+const LOGO_LETTER_FADE_MS = 600; // 1 文字あたりの退場時間（preloader.css と一致させること）
+const LOGO_LETTER_STAGGER_MS = 100; // 文字と文字の間隔（左から順に消える）
+// ロゴが消えてからカバーを動かすまでの余韻。この間は「ロゴの無い白いパネル」だけが残る
+const LOGO_HOLD_MS = 500;
 
 const hidePreloader = (preloader) => {
   preloader.classList.add("is-hidden");
-  preloader.addEventListener(
-    "transitionend",
-    () => {
-      preloader.remove();
-    },
-    { once: true },
-  );
+  // transitionend はバブルするので、子（.preloader__logo のフェード）の完了を
+  // 拾わないよう自分自身のイベントに限定する。ロゴのフェード完了と
+  // この登録はほぼ同時刻なので、絞らないと早期に remove されうる
+  const onEnd = (e) => {
+    if (e.target !== preloader) return;
+    preloader.removeEventListener("transitionend", onEnd);
+    preloader.remove();
+  };
+  preloader.addEventListener("transitionend", onEnd);
 };
 
 // ロゴが下から塗り上がるプリローダー。進捗は「画像の読み込み率」と
@@ -22,8 +27,17 @@ const hidePreloader = (preloader) => {
 // 低速回線（Hero 6 枚 ≈ 1MB が間に合わない）でタイムアウトが通常経路になり、
 // 未ロードの真っ白な写真のままイントロが始まってしまう。
 // 「遅いが進んでいる」なら待ち続け、「壊れて止まった」ときだけ諦める
+// requiredImgSelector を指定すると「開く判定」だけをその部分集合に絞れる。
+// 進捗表示と停滞検知は heroImgSelector（全枚）のまま残すのが要点で、
+// 待機対象そのものを 1 枚に減らすと進捗が 0/1 の二値になり、
+// ロゴの塗りが 0% で固まってから最後に飛ぶ（低速回線ほど顕著）。
+// 未指定なら heroImgSelector と同じ集合＝従来どおりの挙動。
+// logoBands はロゴを 1 文字ずつ消すための分割で、各要素は [左, 右]（ロゴ幅に対する %）。
+// ブランド固有のデータなので呼び出し側から渡す。未指定ならロゴ 1 枚でフェードする
 export const runPreloader = ({
   heroImgSelector = "",
+  requiredImgSelector = "",
+  logoBands = [],
   fontSpec = "",
   minDisplayMs = 1500,
   stallTimeoutMs = 10000,
@@ -48,11 +62,37 @@ export const runPreloader = ({
 
   lockScroll();
 
+  // ロゴを 1 文字ずつ消す構成。フルサイズのロゴを文字数ぶん重ね、
+  // clip-path で各文字の帯だけを見せる（各コピーは元と同寸なので
+  // 塗り上げのグラデーションは分割前と同じに見える）。
+  // transition-delay で左から順に消し、親は器に徹する（--split）
+  const logo = preloader.querySelector(".preloader__logo");
+  if (logo && logoBands.length) {
+    logo.classList.add("preloader__logo--split");
+    for (const [i, [left, right]] of logoBands.entries()) {
+      const letter = document.createElement("span");
+      letter.className = "preloader__logo-letter";
+      letter.style.clipPath = `inset(0 ${100 - right}% 0 ${left}%)`;
+      letter.style.transitionDelay = `${i * LOGO_LETTER_STAGGER_MS}ms`;
+      logo.appendChild(letter);
+    }
+  }
+  // 最後の 1 文字が消え終わるまでの合計。分割しない場合は stagger が乗らない
+  const logoExitMs =
+    LOGO_LETTER_FADE_MS +
+    LOGO_LETTER_STAGGER_MS * Math.max(0, logoBands.length - 1);
+
   const heroImgs = heroImgSelector
     ? [...document.querySelectorAll(heroImgSelector)]
     : [];
   const total = heroImgs.length;
+  // 開く判定に使う必須集合。未指定なら全枚（＝従来どおり）
+  const requiredImgs = requiredImgSelector
+    ? [...document.querySelectorAll(requiredImgSelector)]
+    : heroImgs;
+  const requiredTotal = requiredImgs.length;
   let imageRatio = total === 0 ? 1 : 0;
+  let requiredRatio = requiredTotal === 0 ? 1 : 0;
   let displayedPct = 0;
   let finishing = false;
   let fontsReady = false;
@@ -61,9 +101,9 @@ export const runPreloader = ({
   // ダウンロード完了（complete）だけでなくデコード到達までを完了条件にする。
   // complete のみだと初回描画時にデコード待ちのカクつきが出るため。
   // decode() がハングしても停滞タイムアウトの安全網で必ず開く
-  let imagesDecoded = total === 0;
-  Promise.allSettled(heroImgs.map((img) => img.decode())).then(() => {
-    imagesDecoded = true;
+  let requiredDecoded = requiredTotal === 0;
+  Promise.allSettled(requiredImgs.map((img) => img.decode())).then(() => {
+    requiredDecoded = true;
   });
 
   // フォント待機（FOUT 対策）。"1rem Marcellus" 形式の文字列 or その配列
@@ -84,11 +124,17 @@ export const runPreloader = ({
   };
 
   const recomputeImageRatio = () => {
-    if (total === 0) return;
-    imageRatio = heroImgs.filter((img) => img.complete).length / total;
+    if (total > 0) {
+      imageRatio = heroImgs.filter((img) => img.complete).length / total;
+    }
+    if (requiredTotal > 0) {
+      requiredRatio =
+        requiredImgs.filter((img) => img.complete).length / requiredTotal;
+    }
   };
 
-  for (const img of heroImgs) {
+  // 必須集合が heroImgs の外にある構成でも取りこぼさないよう、両方に張る
+  for (const img of new Set([...heroImgs, ...requiredImgs])) {
     if (!img.complete) {
       img.addEventListener("load", recomputeImageRatio, { once: true });
       img.addEventListener("error", recomputeImageRatio, { once: true }); // 失敗も完了扱い
@@ -118,7 +164,7 @@ export const runPreloader = ({
         unlockScroll();
         onComplete();
         hidePreloader(preloader);
-      }, LOGO_FADE_MS);
+      }, logoExitMs + LOGO_HOLD_MS);
     };
     requestAnimationFrame(fillStep);
   };
@@ -140,7 +186,7 @@ export const runPreloader = ({
     displayedPct += (targetPct - displayedPct) * LERP_ALPHA;
     setProgress(displayedPct);
 
-    const signature = `${imageRatio}|${imagesDecoded}|${fontsReady}`;
+    const signature = `${imageRatio}|${requiredRatio}|${requiredDecoded}|${fontsReady}`;
     if (signature !== lastProgressSignature) {
       lastProgressSignature = signature;
       lastProgressAt = now;
@@ -149,7 +195,7 @@ export const runPreloader = ({
     const timedOut =
       now - lastProgressAt >= stallTimeoutMs || elapsed >= maxWaitMs;
     const ready =
-      timeRatio >= 1 && imageRatio >= 1 && imagesDecoded && fontsReady;
+      timeRatio >= 1 && requiredRatio >= 1 && requiredDecoded && fontsReady;
 
     if (timedOut || ready) {
       finish();

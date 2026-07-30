@@ -68,6 +68,22 @@ export const initSlider = () => {
     startKenBurnsZoom(activeImg, CYCLE_SECONDS);
   };
 
+  // ヒーロー画像すべてのロード完了を待つ。通常はプリローダーが全枚の decode まで
+  // 待つので即解決する。停滞タイムアウトで早期に開いた場合に、未ロードのスライドへ
+  // 切り替わって白飛びするのを防ぐ保険。
+  // 失敗（error）も完了扱いにして、1 枚の破損で自動送りが永久に止まるのを防ぐ
+  const waitForAllHeroImages = () =>
+    Promise.all(
+      [...heroSwiperEl.querySelectorAll("img")].map((img) =>
+        img.complete
+          ? Promise.resolve()
+          : new Promise((resolve) => {
+              img.addEventListener("load", resolve, { once: true });
+              img.addEventListener("error", resolve, { once: true });
+            }),
+      ),
+    );
+
   const heroSwiper = new Swiper(heroSwiperEl, {
     modules: [EffectFade, Autoplay],
     effect: "fade",
@@ -82,8 +98,10 @@ export const initSlider = () => {
     },
     on: {
       // init では呼ばない。この時点はまだオープニング中で hero.js が同じ <img> を
-      // 動かしており、書いた scale も完了時の clearProps で消える
-      slideChangeTransitionStart: zoomActiveSlide,
+      // 動かしており、書いた scale も完了時の clearProps で消える。
+      // ハンドラを直接渡さず包むのは、第 2 引数（尺）に Swiper の引数が
+      // 紛れ込まないようにするため
+      slideChangeTransitionStart: (swiper) => zoomActiveSlide(swiper),
     },
   });
 
@@ -94,11 +112,12 @@ export const initSlider = () => {
     document.addEventListener(
       "hero:animation-complete",
       () => {
+        handedOver = true;
         // 1 枚目のズームはここでは始めない。hero.js が拡大の終わり際から先行開始
         // しており、ここで startKenBurnsZoom を呼ぶと走行中の scale が 1 へ
-        // スナップして逆に引っかかる
-        handedOver = true;
-        heroSwiper.autoplay.start();
+        // スナップして逆に引っかかる。
+        // 自動送りは全枚が揃ってから（停滞タイムアウトで早期に開いた場合の保険）
+        waitForAllHeroImages().then(() => heroSwiper.autoplay.start());
       },
       { once: true },
     );

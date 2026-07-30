@@ -5,7 +5,14 @@ import { lockScroll, unlockScroll } from "./utils/scroll-lock.js";
 import { splitCharsByWord } from "./utils/split-text.js";
 
 // 調整レバー
-const START_DELAY = 0.3; // 白背景で見せる間
+// プリローダーのカバー（下方向の逆 reveal）が退き切るまでの時間。
+// preloader.css の .preloader { transition: transform 1s } と一致させること
+//（loading:complete はカバー退場の開始と同 tick で届くため、タイムラインの
+// delay にこの値を足して「カバーが退き切ってから」白背景の演出を始める）
+const COVER_EXIT_DURATION = 1;
+// カバーが退き切った後、写真が入るまで白背景（＋出そろった黒テキスト）で
+// 見せる間の一部（PHOTOS_AT の合算にのみ使う）
+const START_DELAY = 0.3;
 const FADE_INTERVAL = 0.5; // 次の画像が出始めるまでの間隔（フェード時間の半分 = 同時 2 枚まで）
 const FADE_DURATION = 1.2; // 1 枚あたりの移動・回転の時間
 // opacity だけ移動より大幅に短くし、着地のかなり手前で不透明にし切る
@@ -21,12 +28,17 @@ const CHAR_COLOR_DURATION = 0.3;
 const OVERLAY_FADE_DURATION = 0.6;
 // オーバーレイのフェード完了後、写真の重なりが始まるまでの間
 const OVERLAY_HOLD = 0.1;
-// 写真群の開始オフセット。オーバーレイを先に見せ、ひと呼吸置いてから写真に入る
+// オーバーレイ前倒し（カバー退場と同時にフェード）以前の区間割。
+// 写真の入場時刻を前倒し前と変えないための合算にのみ使う
 const PHOTOS_START = OVERLAY_FADE_DURATION + OVERLAY_HOLD;
+// 写真の重なりの開始時刻（タイムライン = loading:complete 起点の絶対値）。
+// オーバーレイを退場と同時に前倒ししても、写真は従来どおり
+// 「退場 1.0 + 白 0.3 + ひと呼吸 0.7」= 2.0s を維持する
+const PHOTOS_AT = COVER_EXIT_DURATION + START_DELAY + PHOTOS_START;
 // プリローダーが来ない場合の保険。内訳は preloader の maxWaitMs 60000
-// + ロゴフェード 600 + カバーフェード 800 + バッファ 2000。
+// + ロゴが 1 文字ずつ消える 900 と余韻 500 + カバー退場 1000 + バッファ 2000。
 // main.js の maxWaitMs を変えたらこの値も連動して見直すこと
-const LOADING_FALLBACK_MS = 63400;
+const LOADING_FALLBACK_MS = 64400;
 const ROTATIONS = [-4, 3, -5, 3.5, -2.5, 2]; // フェード順（6→1）の着地角度。正負交互・最後は控えめ
 // 着地 X（xPercent）。センター一列ではなく左右交互に散らして重ねる（ポラロイド風）。
 // 符号は ROTATIONS と連動 = 入場方向と同じ側に着地して手前で止まる。
@@ -73,8 +85,9 @@ const onLoadingComplete = (fn) => {
   setTimeout(once, LOADING_FALLBACK_MS);
 };
 
-// オープニング: 白背景に黒のロゴ（センター）・黒のキャッチをフェードインで見せてから、
-// 6 枚が 7 割サイズで 1 枚ずつ重なりながらフェード出現（6 → 1 の逆順。1 枚目で締める）
+// オープニング: プリローダーのカバーが下へ退き切った後、白背景に黒のロゴ（センター）・
+// 黒のキャッチをフェードインで見せてから、6 枚が 7 割サイズで 1 枚ずつ重なりながら
+// フェード出現（6 → 1 の逆順。1 枚目で締める）
 // → 画面いっぱいへ拡大しつつ、キャッチを左から 1 文字ずつ白へ・ロゴを右隅へ移す。
 // 写真の初期非表示は hero.css の .hero:not(.is-hero-ready) ガードが担う（FOUC 防止）。
 export const initHero = () => {
@@ -154,7 +167,6 @@ export const initHero = () => {
     }
 
     const tl = gsap.timeline({
-      delay: START_DELAY,
       onComplete: () => {
         // Swiper fade の静止状態（先頭のみ可視）へ戻してから z-index を解除する。
         // 全 slide 可視のまま解除すると DOM 順で 6 枚目が最前面に描かれてしまう
@@ -177,8 +189,9 @@ export const initHero = () => {
       },
     });
 
-    // 冒頭: オーバーレイ（黒ロゴ・黒キャッチ）をフェードインで見せる。
-    // 白背景の間（START_DELAY）は透明のまま、1 枚目の写真の入場と同時に現れ始める
+    // 冒頭: オーバーレイ（黒ロゴ・黒キャッチ）をカバーの退場と同時にフェードイン。
+    // カバーは上から順に画面を現すので、キャッチ帯（画面下部）が露出する ~0.45s には
+    // 文字は 7 割方出ており、「カバーが黒テキストを現していく」見え方になる
     if (overlay) {
       tl.to(
         overlay,
@@ -210,7 +223,7 @@ export const initHero = () => {
           duration: FADE_OPACITY_DURATION,
           ease: "none", // フェードは等速。移動・回転側にだけイージングを効かせる
         },
-        PHOTOS_START + i * FADE_INTERVAL,
+        PHOTOS_AT + i * FADE_INTERVAL,
       );
       tl.fromTo(
         images[slideIndex],
@@ -226,7 +239,7 @@ export const initHero = () => {
           duration: FADE_DURATION,
           ease: "power2.out",
         },
-        PHOTOS_START + i * FADE_INTERVAL,
+        PHOTOS_AT + i * FADE_INTERVAL,
       );
     }
 
@@ -315,7 +328,7 @@ export const initHero = () => {
   onLoadingComplete(() => {
     // 直前まで残っているスクロール復元を最後に打ち消す（index.html の head で
     // scrollRestoration は manual にしてあるが、この時点の位置を先頭に確定させる）。
-    // まだプリローダーのカバーがフェード中なので、この移動は見えない
+    // カバーはまだ全面を覆っている（退場はこの直後に始まる）ので、この移動は見えない
     window.scrollTo(0, 0);
     lockScroll();
 

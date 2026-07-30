@@ -15,10 +15,14 @@
 
   /* typography（ROPÉ: 本文の欧文も Marcellus で揃える方針。和文は明朝フォールバック） */
   --font-primary:
-    "Marcellus", "游明朝", "YuMincho", "Hiragino Mincho ProN", serif; /* 本文: Marcellus（欧文）+ 和文明朝フォールバック */
+    "Marcellus", "游明朝", "YuMincho", "Hiragino Mincho ProN W3",
+    "ヒラギノ明朝 ProN W3", "Hiragino Mincho ProN", "HG明朝E", "ＭＳ Ｐ明朝",
+    "ＭＳ 明朝", serif; /* 本文: Marcellus（欧文）+ 和文明朝フォールバック */
 
   --font-display:
-    "Marcellus", "游明朝", "YuMincho", "Hiragino Mincho ProN", serif; /* 見出し・数字・価格: Marcellus + 和文明朝フォールバック */
+    "Marcellus", "游明朝", "YuMincho", "Hiragino Mincho ProN W3",
+    "ヒラギノ明朝 ProN W3", "Hiragino Mincho ProN", "HG明朝E", "ＭＳ Ｐ明朝",
+    "ＭＳ 明朝", serif; /* 見出し・数字・価格: Marcellus + 和文明朝フォールバック */
 
   /* spacing */
   --spacing-xs: 0.5rem;
@@ -39,8 +43,20 @@
   --content-width-100v: 100%;
   --credit-width: 24rem; /* 商品クレジットの固定幅（PC）。ブロック幅に依存せず全ブロック共通 */
 
+  /* ロゴの表示幅。プリローダー（中央）と Hero（右上）で同寸に保つための共通値。
+     min() は極小画面でロゴが画面幅を占有しないための上限（320px 未満で効く） */
+  --logo-width: min(30vw, 6rem);
+
   /* motion */
   --ease-out: cubic-bezier(0.215, 0.61, 0.355, 1);
+}
+
+/* ロゴ幅の SP / PC 切り替え。参照側は var(--logo-width) 1 本なので
+   ここを直せばプリローダーと Hero が同時に動く */
+@media (width >= 768px) {
+  :root {
+    --logo-width: 8rem;
+  }
 }
 
 /* ----------------------------------------------------------------

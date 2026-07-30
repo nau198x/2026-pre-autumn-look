@@ -40,7 +40,10 @@
 
   .hero__logo {
     align-self: flex-end; /* 右上隅 */
-    width: min(30vw, 7.5rem);
+
+    /* プリローダーのロゴと同寸にするための共通トークン（global.css）。
+       SP / PC の切り替えもトークン側が持つので、ここに @media は要らない */
+    width: var(--logo-width);
     height: auto;
 
     /* filter: drop-shadow(0 2px 12px rgb(0 0 0 / 30%)); */
@@ -93,10 +96,6 @@
   }
 
   @media (width >= 768px) {
-    .hero__logo {
-      width: 8rem;
-    }
-
     /* サブとメインの行幅を一致させる（実測で字間を決定）。
        letter-spacing は「各文字の後ろ」に入るため、末尾 1 つぶんを負のマージンで
        相殺しないと (a) 実幅が字間 1 つぶん広がり (b) 中央寄せが左へずれる。

@@ -1,8 +1,8 @@
 /* ----------------------------------------------------------------
  Preloader
  ロゴが下から塗り上がるローディング画面（src/scripts/preloader.js）。
- 背景は Hero イントロの開始色と同じ白なので、カバーが消える瞬間に
- 継ぎ目が出ない。スクロールロックは body.is-scroll-locked（global.css）側。
+ 解除ではカバーが下へ退き、その下から完成した Hero の写真が上から順に現れる
+ （写真側はフェードさせない）。スクロールロックは body.is-scroll-locked（global.css）側。
 ----------------------------------------------------------------- */
 .preloader {
   position: fixed;
@@ -12,40 +12,95 @@
   align-items: center;
   justify-content: center;
   background-color: var(--color-bg);
-  transition: opacity 0.8s ease-out;
+
+  /* 解除は下方向へスライドさせて退場し、Hero を上から順に現す（逆 reveal）。
+     ロゴは先に消えていて単色パネルなので、clip でマスクするのと見た目は同じ。
+     尺 1s は hero.js の COVER_EXIT_DURATION と一致させること
+     （reveal・ロゴ・Ken Burns がこの時刻を基準に揃えてある） */
+  transition: transform 1s var(--ease-out);
 
   /* ロゴ本体は空 div。形は mask で抜き、塗りは background のグラデで表す */
   .preloader__logo {
-    width: 6rem;
+    /* Hero のロゴと同寸にするための共通トークン（global.css）。
+       SP / PC の切り替えもトークン側が持つので、ここに @media は要らない */
+    width: var(--logo-width);
     aspect-ratio: 1024 / 337.427; /* rope_white_logo.svg の viewBox 比 */
 
-    /* 下から --progress% までが塗り色、それより上は下地色 */
-    background: linear-gradient(
-      to top,
-      var(--color-text) 0%,
-      var(--color-text) var(--progress, 0%),
-      var(--color-fill-base) var(--progress, 0%),
-      var(--color-fill-base) 100%
-    );
-    mask-image: url("../assets/images/rope_white_logo.svg");
-    mask-repeat: no-repeat;
-    mask-position: center;
-    mask-size: contain;
-    transition: opacity 0.6s ease-out;
+    /* 塗り上げの見た目。1 文字ずつ消す構成（preloader.js の logoBands）では、
+       同じものを各文字のコピーが持つ。コピーは元と同寸なので見え方は変わらない */
+    &,
+    .preloader__logo-letter {
+      /* 下から --progress% までが塗り色、それより上は下地色 */
+      background: linear-gradient(
+        to top,
+        var(--color-text) 0%,
+        var(--color-text) var(--progress, 0%),
+        var(--color-fill-base) var(--progress, 0%),
+        var(--color-fill-base) 100%
+      );
+      mask-image: url("../assets/images/rope_white_logo.svg");
+      mask-repeat: no-repeat;
+      mask-position: center;
+      mask-size: contain;
+    }
+
+    /* 分割時は親が二重に描かないよう器に徹する */
+    &.preloader__logo--split {
+      position: relative;
+      background: none;
+      mask-image: none;
+    }
+
+    /* 各文字は全体のコピーを clip-path で 1 文字ぶんに切り出したもの。
+       切り出し位置と時間差は preloader.js が inline で書く。
+       clip-path も mask も要素のローカル座標で効くので、transform を掛ければ
+       切り出した形のまま動く（入れ子や座標の再計算は要らない） */
+    .preloader__logo-letter {
+      position: absolute;
+      inset: 0;
+    }
+
+    /* 退場は上へ流しながら消す。分割しない構成（logoBands 未指定）でも同じ扱い。
+       尺は preloader.js の LOGO_LETTER_FADE_MS と一致させること */
+    &:not(.preloader__logo--split),
+    .preloader__logo-letter {
+      transition:
+        opacity 0.6s var(--ease-out),
+        transform 0.6s var(--ease-out);
+    }
   }
 
-  &.is-logo-hidden .preloader__logo {
-    opacity: 0;
+  /* 親を薄くすると子も一緒に薄まって時間差が消えるため、対象を分ける。
+     移動量の % は要素自身の高さ（＝ロゴ高）基準なので SP / PC 両方で釣り合う */
+  &.is-logo-hidden {
+    .preloader__logo:not(.preloader__logo--split),
+    .preloader__logo-letter {
+      opacity: 0;
+      transform: translateY(-40%);
+    }
   }
 
   &.is-hidden {
-    opacity: 0;
+    transform: translateY(100%);
     pointer-events: none;
   }
 
-  @media (width >= 768px) {
-    .preloader__logo {
-      width: 8rem;
+  /* 全画面を動かす演出は reduced-motion では避け、短いフェードに落とす。
+     transitionend で DOM から取り除く仕組みは opacity 側でも成立する */
+  @media (prefers-reduced-motion: reduce) {
+    transition: opacity 0.4s var(--ease-out);
+
+    &.is-hidden {
+      transform: none;
+      opacity: 0;
+    }
+
+    /* ロゴの上方向の移動もモーションなので止め、フェードと時間差だけ残す */
+    &.is-logo-hidden {
+      .preloader__logo:not(.preloader__logo--split),
+      .preloader__logo-letter {
+        transform: none;
+      }
     }
   }
 }
