@@ -15,9 +15,9 @@
 
   /* 解除は下方向へスライドさせて退場し、Hero を上から順に現す（逆 reveal）。
      ロゴは先に消えていて単色パネルなので、clip でマスクするのと見た目は同じ。
-     尺 0.8s は hero.js の COVER_EXIT_DURATION と一致させること
+     尺 1s は hero.js の COVER_EXIT_DURATION と一致させること
      （reveal・ロゴ・Ken Burns がこの時刻を基準に揃えてある） */
-  transition: transform 0.8s var(--ease-out);
+  transition: transform 1s var(--ease-out);
 
   /* ロゴ本体は空 div。形は mask で抜き、塗りは background のグラデで表す */
   .preloader__logo {

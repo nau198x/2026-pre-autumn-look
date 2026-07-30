@@ -7,28 +7,30 @@ import { splitCharsByWord } from "./utils/split-text.js";
 // 調整レバー
 // プリローダーのカバーが消えきる時刻。ロゴのフェードは
 // 「ページが完全に見えた瞬間」＝ここから動き出す。
-// preloader.css の .preloader { transition: transform 0.8s }（下方向へ退場）と
+// preloader.css の .preloader { transition: transform 1s }（下方向へ退場）と
 // 一致させること
 //（onComplete() の直後に hidePreloader() が走るので、この時刻がカバーの消滅と揃う）
-const COVER_EXIT_DURATION = 0.8;
+const COVER_EXIT_DURATION = 1;
 // Ken Burns だけはカバーが退き切るのを待たず、この秒数ぶん手前から始めて退場に重ねる。
-// カバーの動きは ease-out で前半に偏る（実測 0.2 秒で 6 割・0.4 秒で 9 割が退く）ため、
+// カバーの動きは ease-out で前半に偏る（実測 0.25 秒で 6 割・0.5 秒で 9 割が退く）ため、
 // 現れていく最中に重ねるにはこのくらい早める必要がある。
-// 大きくすると露出前から拡大が進むので、上限は COVER_EXIT_DURATION
-const KEN_BURNS_OVERLAP = 0.6;
-// テキスト帯（画面の下 82〜94%）がカバーの下から現れる時刻（実測 SP 0.35s / PC 0.37s）。
+// 大きくすると露出前から拡大が進むので、上限は COVER_EXIT_DURATION。
+// カバーの尺を変えたら比例させること（見え方の基準は「6 割退いた時点で拡大済み」）
+const KEN_BURNS_OVERLAP = 0.75;
+// テキスト帯（画面の下 82〜94%）がカバーの下から現れる時刻（実測 SP 0.436s / PC 0.452s）。
 // カバーは下方向へ退くのでテキストは最後に現れる。ここから reveal を始めると
 // 「露出 → reveal」が途切れずに繋がり、現れてから空のまま待つ間が無くなる
-const TEXT_REVEAL_AT = 0.35;
+//（カバーの尺・イージングを変えたら測り直すこと）
+const TEXT_REVEAL_AT = 0.44;
 const CHAR_REVEAL_DURATION = 0.7; // 1 文字がマスクからせり上がる時間
 // 全行が出そろうまでの尺。stagger の amount = この値 − CHAR_REVEAL_DURATION なので、
 // 行の文字数に関係なく全行が同時に出そろう
 const TEXT_REVEAL_DURATION = 1;
 const LOGO_FADE_DURATION = 0.8;
 // プリローダーが来ない場合の保険。内訳は preloader の maxWaitMs 60000
-// + ロゴが 1 文字ずつ消える 900 と余韻 500 + カバー退場 800 + バッファ 2000。
+// + ロゴが 1 文字ずつ消える 900 と余韻 500 + カバー退場 1000 + バッファ 2000。
 // main.js の maxWaitMs を変えたらこの値も連動して見直すこと
-const LOADING_FALLBACK_MS = 64200;
+const LOADING_FALLBACK_MS = 64400;
 
 const fireComplete = () =>
   document.dispatchEvent(new Event("hero:animation-complete"));
