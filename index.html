@@ -84,8 +84,7 @@
     <section class="hero" aria-label="メインビジュアル">
       <div class="hero__swiper swiper">
         <div class="swiper-wrapper">
-          <!-- イントロで見せるのは 1.webp だけ。この 1 枚に帯域を寄せて表示を早め、
-               残り 5 枚は低優先で追わせる（自動送りは全枚のロード後に始まる） -->
+          <!-- 1.webp はイントロ最後に残る主役、6.webp はイントロで最初に現れる。この 2 枚を優先取得する -->
           <div class="swiper-slide">
             <img
               src="src/assets/images/hero/1.webp"
@@ -99,50 +98,22 @@
           </div>
           <div class="swiper-slide">
             <a href="https://www.junonline.jp/rope/" target="_blank" rel="noopener"
-              ><img
-                src="src/assets/images/hero/2.webp"
-                alt=""
-                loading="eager"
-                fetchpriority="low"
-                decoding="async"
-                width="1280"
-                height="1600"
+              ><img src="src/assets/images/hero/2.webp" alt="" loading="eager" decoding="async" width="1280" height="1600"
             /></a>
           </div>
           <div class="swiper-slide">
             <a href="https://www.junonline.jp/rope/" target="_blank" rel="noopener"
-              ><img
-                src="src/assets/images/hero/3.webp"
-                alt=""
-                loading="eager"
-                fetchpriority="low"
-                decoding="async"
-                width="1280"
-                height="1600"
+              ><img src="src/assets/images/hero/3.webp" alt="" loading="eager" decoding="async" width="1280" height="1600"
             /></a>
           </div>
           <div class="swiper-slide">
             <a href="https://www.junonline.jp/rope/" target="_blank" rel="noopener"
-              ><img
-                src="src/assets/images/hero/4.webp"
-                alt=""
-                loading="eager"
-                fetchpriority="low"
-                decoding="async"
-                width="1280"
-                height="1600"
+              ><img src="src/assets/images/hero/4.webp" alt="" loading="eager" decoding="async" width="1280" height="1600"
             /></a>
           </div>
           <div class="swiper-slide">
             <a href="https://www.junonline.jp/rope/" target="_blank" rel="noopener"
-              ><img
-                src="src/assets/images/hero/5.webp"
-                alt=""
-                loading="eager"
-                fetchpriority="low"
-                decoding="async"
-                width="1280"
-                height="1600"
+              ><img src="src/assets/images/hero/5.webp" alt="" loading="eager" decoding="async" width="1280" height="1600"
             /></a>
           </div>
           <div class="swiper-slide">
@@ -151,7 +122,7 @@
                 src="src/assets/images/hero/6.webp"
                 alt=""
                 loading="eager"
-                fetchpriority="low"
+                fetchpriority="high"
                 decoding="async"
                 width="1280"
                 height="1600"
@@ -161,8 +132,8 @@
       </div>
 
       <div class="hero__overlay">
-        <!-- data-animate は付けない: イントロの入場は hero.js が opacity で直接受け持つ
-             （スクロールリビールの opacity ガードと衝突するため） -->
+        <!-- data-animate は付けない: イントロ中から表示し、hero.js がセンター→右隅の移動と
+             filter の黒→白を直接受け持つ（スクロールリビールの opacity ガードと衝突するため） -->
         <a class="hero__logo" href="https://www.rope-jp.com" target="_blank" rel="noopener">
           <img class="hero__logo" src="src/assets/images/rope_white_logo.svg" alt="ROPÉ" width="240" height="79"
         /></a>

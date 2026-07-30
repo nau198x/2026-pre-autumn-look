@@ -31,10 +31,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   runPreloader({
     heroImgSelector: ".hero__swiper img",
-    // イントロで見せるのは 1 枚目だけなので、開く判定はこの 1 枚に絞る
-    // （進捗表示と停滞検知は上の 6 枚のまま）。残り 5 枚のロードは
-    // slider.js が自動送りの開始前に待つので、切り替えで白飛びしない
-    requiredImgSelector: ".hero__swiper .swiper-slide:first-child img",
     // ロゴ（ROPÉ）を 1 文字ずつ消すための分割。各要素は [左, 右]（ロゴ幅に対する %）。
     // ロゴを差し替えたら測り直すこと: SVG を開いて各 <path> の getBBox() を取り、
     // 隣り合う文字の「隙間の中間」で切ると 1 文字も欠けない
